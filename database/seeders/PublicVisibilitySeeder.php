@@ -26,7 +26,7 @@ class PublicVisibilitySeeder extends Seeder
             [
                 'title' => 'The Africa We Want',
                 'subtitle' => 'Agenda 2063 - 50-year blueprint for transformation',
-                'image_url' => 'https://agenda2063.africa/assets/banner1.jpeg',
+                'image_url' => '' . asset('images/flagships/au1.jpg') . '',
                 'cta_label' => 'Discover Agenda 2063',
                 'cta_url' => url('/about'),
                 'position' => 1,
@@ -35,7 +35,7 @@ class PublicVisibilitySeeder extends Seeder
             [
                 'title' => 'Flagship Projects',
                 'subtitle' => '15 catalytic initiatives accelerating integration',
-                'image_url' => 'https://agenda2063.africa/assets/news3.png',
+                'image_url' => '' . asset('images/flagships/au4.jpg') . '',
                 'cta_label' => 'View Projects',
                 'cta_url' => url('/flagship-projects'),
                 'position' => 2,
@@ -44,7 +44,7 @@ class PublicVisibilitySeeder extends Seeder
             [
                 'title' => 'Continental Performance',
                 'subtitle' => 'Track aspirations, goals, and country progress',
-                'image_url' => 'https://agenda2063.africa/assets/news4.png',
+                'image_url' => '' . asset('images/flagships/au5.jpg') . '',
                 'cta_label' => 'See Dashboard',
                 'cta_url' => url('/performance'),
                 'position' => 3,
@@ -53,7 +53,7 @@ class PublicVisibilitySeeder extends Seeder
             [
                 'title' => 'Voices of the Youth',
                 'subtitle' => 'Empowering women and young people to lead the future',
-                'image_url' => 'https://agenda2063.africa/assets/news2.png',
+                'image_url' => '' . asset('images/flagships/au3.jpg') . '',
                 'cta_label' => 'Youth Stories',
                 'cta_url' => url('/news'),
                 'position' => 4,
@@ -62,7 +62,7 @@ class PublicVisibilitySeeder extends Seeder
             [
                 'title' => 'Partnerships that Deliver',
                 'subtitle' => 'Collaboration across member states for shared prosperity',
-                'image_url' => 'https://agenda2063.africa/assets/news1.png',
+                'image_url' => '' . asset('images/flagships/au2.webp') . '',
                 'cta_label' => 'See Collaborations',
                 'cta_url' => url('/about#partners'),
                 'position' => 5,

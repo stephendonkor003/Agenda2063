@@ -7,7 +7,7 @@
     <!-- Hero Section (driven from admin sliders) -->
     @php
         $heroSlides = collect($sliders ?? [])->chunk(3);
-        $placeholder = 'https://agenda2063.africa/assets/banner1.jpeg';
+        $placeholder = asset('images/flagships/au1.jpg');
     @endphp
     <section class="hero" id="heroSection">
         <div class="hero-wrapper">
@@ -34,7 +34,7 @@
                 <!-- Fallback static hero when no sliders are configured -->
                 <div class="hero-slide active" data-slide="0">
                     <div class="hero-card active" data-index="0">
-                        <div class="hero-bg" style="background-image: url('https://agenda2063.africa/assets/banner1.jpeg');"></div>
+                        <div class="hero-bg" style="background-image: url('{{ asset('images/flagships/au1.jpg') }}');"></div>
                         <div class="hero-content">
                             <h3>Agenda 2063</h3>
                             <p>The Africa We Want.</p>

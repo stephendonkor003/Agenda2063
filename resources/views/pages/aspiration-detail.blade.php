@@ -4,7 +4,7 @@
 
 @section('content')
 @php
-    $image = $aspiration['image'] ?? 'https://agenda2063.africa/assets/Aspiration1.png';
+    $image = $aspiration['image'] ?? asset('images/flagships/Aspiration1.png');
     $label = $aspiration['label'] ?? 'Aspiration';
 @endphp
 <section class="page-hero aspiration-hero" style="position:relative; overflow:hidden;">

@@ -160,7 +160,11 @@ class AdminFlagshipProjectsController extends Controller
 
     public function destroyUpdate(Request $request, FlagshipUpdate $update)
     {
-        $this->authorizeProject($request, $update->project);
+        $project = $update->project;
+        if (! $project) {
+            abort(404, 'Associated project not found.');
+        }
+        $this->authorizeProject($request, $project);
         $update->delete();
         return back()->with('status', 'Update deleted.');
     }

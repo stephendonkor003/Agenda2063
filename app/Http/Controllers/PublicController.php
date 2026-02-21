@@ -17,19 +17,19 @@ class PublicController extends Controller
         ]];
 
         $defaultAspirations = [
-            ['title'=>"Africa's Economic Growth", 'label'=>'Aspiration 1', 'front'=>'https://agenda2063.africa/assets/Aspiration1.png', 'back_title'=>'A Prosperous Africa', 'back_text'=>'A prosperous Africa based on inclusive growth and sustainable development, eradicating poverty and creating opportunities for all.', 'link'=>url('/about#goals')],
-            ['title'=>"Integrated Continent", 'label'=>'Aspiration 2', 'front'=>'https://agenda2063.africa/assets/Aspiration2.png', 'back_title'=>'Political Unity', 'back_text'=>"An integrated continent, politically united and based on the ideals of Pan-Africanism and the vision of Africa's Renaissance.", 'link'=>url('/about#goals')],
-            ['title'=>"Good Governance", 'label'=>'Aspiration 3', 'front'=>'https://agenda2063.africa/assets/Aspiration3.png', 'back_title'=>'Rule of Law', 'back_text'=>'An Africa of good governance, democracy, respect for human rights, justice and the rule of law.', 'link'=>url('/about#goals')],
-            ['title'=>"Peace & Security", 'label'=>'Aspiration 4', 'front'=>'https://agenda2063.africa/assets/Aspiration4.png', 'back_title'=>'A Peaceful Africa', 'back_text'=>'A peaceful and secure Africa, free from conflict and violence, where dialogue prevails over guns.', 'link'=>url('/about#goals')],
-            ['title'=>"Cultural Renaissance", 'label'=>'Aspiration 5', 'front'=>'https://agenda2063.africa/assets/Aspiration5.png', 'back_title'=>'Strong Identity', 'back_text'=>"An Africa with a strong cultural identity, common heritage, shared values and ethics.", 'link'=>url('/about#goals')],
-            ['title'=>"People-Driven", 'label'=>'Aspiration 6', 'front'=>'https://agenda2063.africa/assets/Aspiration6.png', 'back_title'=>'Youth & Women', 'back_text'=>"An Africa whose development is people-driven, relying on the potential of African people, especially its women and youth.", 'link'=>url('/about#goals')],
-            ['title'=>"Global Player", 'label'=>'Aspiration 7', 'front'=>'https://agenda2063.africa/assets/Aspiration7.png', 'back_title'=>'Influential Partner', 'back_text'=>"Africa as a strong, united, resilient and influential global player and partner.", 'link'=>url('/about#goals')],
+            ['title'=>"Africa's Economic Growth", 'label'=>'Aspiration 1', 'front'=>'' . asset('images/flagships/Aspiration1.png') . '', 'back_title'=>'A Prosperous Africa', 'back_text'=>'A prosperous Africa based on inclusive growth and sustainable development, eradicating poverty and creating opportunities for all.', 'link'=>url('/about#goals')],
+            ['title'=>"Integrated Continent", 'label'=>'Aspiration 2', 'front'=>'' . asset('images/flagships/Aspiration2.png') . '', 'back_title'=>'Political Unity', 'back_text'=>"An integrated continent, politically united and based on the ideals of Pan-Africanism and the vision of Africa's Renaissance.", 'link'=>url('/about#goals')],
+            ['title'=>"Good Governance", 'label'=>'Aspiration 3', 'front'=>'' . asset('images/flagships/Aspiration3.png') . '', 'back_title'=>'Rule of Law', 'back_text'=>'An Africa of good governance, democracy, respect for human rights, justice and the rule of law.', 'link'=>url('/about#goals')],
+            ['title'=>"Peace & Security", 'label'=>'Aspiration 4', 'front'=>'' . asset('images/flagships/Aspiration4.png') . '', 'back_title'=>'A Peaceful Africa', 'back_text'=>'A peaceful and secure Africa, free from conflict and violence, where dialogue prevails over guns.', 'link'=>url('/about#goals')],
+            ['title'=>"Cultural Renaissance", 'label'=>'Aspiration 5', 'front'=>'' . asset('images/flagships/Aspiration5.png') . '', 'back_title'=>'Strong Identity', 'back_text'=>"An Africa with a strong cultural identity, common heritage, shared values and ethics.", 'link'=>url('/about#goals')],
+            ['title'=>"People-Driven", 'label'=>'Aspiration 6', 'front'=>'' . asset('images/flagships/Aspiration6.png') . '', 'back_title'=>'Youth & Women', 'back_text'=>"An Africa whose development is people-driven, relying on the potential of African people, especially its women and youth.", 'link'=>url('/about#goals')],
+            ['title'=>"Global Player", 'label'=>'Aspiration 7', 'front'=>'' . asset('images/flagships/Aspiration7.png') . '', 'back_title'=>'Influential Partner', 'back_text'=>"Africa as a strong, united, resilient and influential global player and partner.", 'link'=>url('/about#goals')],
         ];
 
         $defaultFlagships = [
-            ['title'=>'INTEGRATED HIGH SPEED TRAIN NETWORK', 'subtitle'=>'Connecting African Capitals and Commercial Centres', 'image'=>'https://agenda2063.africa/assets/flagship-1.jpg', 'text'=>'Aims to connect all African capitals and commercial centres through a high-speed train network.', 'link'=>url('/about#flagship')],
-            ['title'=>'AFRICAN COMMODITIES STRATEGY', 'subtitle'=>"Transforming Africa's Commodities Sector", 'image'=>'https://agenda2063.africa/assets/flagship-2.jpg', 'text'=>'Developing a continental commodities strategy to enable African countries to add value.', 'link'=>url('/about#flagship')],
-            ['title'=>'AFRICAN CONTINENTAL FREE TRADE AREA (AFCFTA)', 'subtitle'=>'Boosting Intra-African Trade', 'image'=>'https://agenda2063.africa/assets/flagship-3.jpg', 'text'=>"Accelerates intra-African trade and strengthens Africa's position in the global market.", 'link'=>url('/about#flagship')],
+            ['title'=>'INTEGRATED HIGH SPEED TRAIN NETWORK', 'subtitle'=>'Connecting African Capitals and Commercial Centres', 'image'=>'' . asset('images/flagships/au6.jpg') . '', 'text'=>'Aims to connect all African capitals and commercial centres through a high-speed train network.', 'link'=>url('/about#flagship')],
+            ['title'=>'AFRICAN COMMODITIES STRATEGY', 'subtitle'=>"Transforming Africa's Commodities Sector", 'image'=>'' . asset('images/flagships/au7.jpg') . '', 'text'=>'Developing a continental commodities strategy to enable African countries to add value.', 'link'=>url('/about#flagship')],
+            ['title'=>'AFRICAN CONTINENTAL FREE TRADE AREA (AFCFTA)', 'subtitle'=>'Boosting Intra-African Trade', 'image'=>'' . asset('images/flagships/au.jpeg') . '', 'text'=>"Accelerates intra-African trade and strengthens Africa's position in the global market.", 'link'=>url('/about#flagship')],
         ];
 
         // optional page meta from nav link pointing to "/"
@@ -82,13 +82,13 @@ class PublicController extends Controller
         $pageMeta = \App\Models\NavigationLink::where('url', '/')->value('page_meta') ?? [];
         $components = collect($pageMeta['components'] ?? []);
         $defaultAspirations = [
-            ['title'=>"Africa's Economic Growth", 'label'=>'Aspiration 1', 'front'=>'https://agenda2063.africa/assets/Aspiration1.png', 'back_title'=>'A Prosperous Africa', 'back_text'=>'A prosperous Africa based on inclusive growth and sustainable development, eradicating poverty and creating opportunities for all.'],
-            ['title'=>"Integrated Continent", 'label'=>'Aspiration 2', 'front'=>'https://agenda2063.africa/assets/Aspiration2.png', 'back_title'=>'Political Unity', 'back_text'=>"An integrated continent, politically united and based on the ideals of Pan-Africanism and the vision of Africa's Renaissance."],
-            ['title'=>"Good Governance", 'label'=>'Aspiration 3', 'front'=>'https://agenda2063.africa/assets/Aspiration3.png', 'back_title'=>'Rule of Law', 'back_text'=>'An Africa of good governance, democracy, respect for human rights, justice and the rule of law.'],
-            ['title'=>"Peace & Security", 'label'=>'Aspiration 4', 'front'=>'https://agenda2063.africa/assets/Aspiration4.png', 'back_title'=>'A Peaceful Africa', 'back_text'=>'A peaceful and secure Africa, free from conflict and violence, where dialogue prevails over guns.'],
-            ['title'=>"Cultural Renaissance", 'label'=>'Aspiration 5', 'front'=>'https://agenda2063.africa/assets/Aspiration5.png', 'back_title'=>'Strong Identity', 'back_text'=>"An Africa with a strong cultural identity, common heritage, shared values and ethics."],
-            ['title'=>"People-Driven", 'label'=>'Aspiration 6', 'front'=>'https://agenda2063.africa/assets/Aspiration6.png', 'back_title'=>'Youth & Women', 'back_text'=>"An Africa whose development is people-driven, relying on the potential of African people, especially its women and youth."],
-            ['title'=>"Global Player", 'label'=>'Aspiration 7', 'front'=>'https://agenda2063.africa/assets/Aspiration7.png', 'back_title'=>'Influential Partner', 'back_text'=>"Africa as a strong, united, resilient and influential global player and partner."],
+            ['title'=>"Africa's Economic Growth", 'label'=>'Aspiration 1', 'front'=>'' . asset('images/flagships/Aspiration1.png') . '', 'back_title'=>'A Prosperous Africa', 'back_text'=>'A prosperous Africa based on inclusive growth and sustainable development, eradicating poverty and creating opportunities for all.'],
+            ['title'=>"Integrated Continent", 'label'=>'Aspiration 2', 'front'=>'' . asset('images/flagships/Aspiration2.png') . '', 'back_title'=>'Political Unity', 'back_text'=>"An integrated continent, politically united and based on the ideals of Pan-Africanism and the vision of Africa's Renaissance."],
+            ['title'=>"Good Governance", 'label'=>'Aspiration 3', 'front'=>'' . asset('images/flagships/Aspiration3.png') . '', 'back_title'=>'Rule of Law', 'back_text'=>'An Africa of good governance, democracy, respect for human rights, justice and the rule of law.'],
+            ['title'=>"Peace & Security", 'label'=>'Aspiration 4', 'front'=>'' . asset('images/flagships/Aspiration4.png') . '', 'back_title'=>'A Peaceful Africa', 'back_text'=>'A peaceful and secure Africa, free from conflict and violence, where dialogue prevails over guns.'],
+            ['title'=>"Cultural Renaissance", 'label'=>'Aspiration 5', 'front'=>'' . asset('images/flagships/Aspiration5.png') . '', 'back_title'=>'Strong Identity', 'back_text'=>"An Africa with a strong cultural identity, common heritage, shared values and ethics."],
+            ['title'=>"People-Driven", 'label'=>'Aspiration 6', 'front'=>'' . asset('images/flagships/Aspiration6.png') . '', 'back_title'=>'Youth & Women', 'back_text'=>"An Africa whose development is people-driven, relying on the potential of African people, especially its women and youth."],
+            ['title'=>"Global Player", 'label'=>'Aspiration 7', 'front'=>'' . asset('images/flagships/Aspiration7.png') . '', 'back_title'=>'Influential Partner', 'back_text'=>"Africa as a strong, united, resilient and influential global player and partner."],
         ];
 
         $aspirations = $components->firstWhere('type', 'aspirations')['cards'] ?? $pageMeta['aspirations_items'] ?? $defaultAspirations;
@@ -127,10 +127,10 @@ class PublicController extends Controller
                 'title' => 'About Agenda 2063',
                 'subtitle' => "Africa's Blueprint for Transformation into the Global Powerhouse of the Future",
                 'images' => [
-                    'https://agenda2063.africa/assets/banner1.jpeg',
-                    'https://agenda2063.africa/assets/news4.png',
-                    'https://agenda2063.africa/assets/news3.png',
-                    'https://agenda2063.africa/assets/Aspiration1.png',
+                    '' . asset('images/flagships/au1.jpg') . '',
+                    '' . asset('images/flagships/au5.jpg') . '',
+                    '' . asset('images/flagships/au4.jpg') . '',
+                    '' . asset('images/flagships/Aspiration1.png') . '',
                 ],
             ],
             'sections' => [
@@ -332,9 +332,9 @@ class PublicController extends Controller
         $flagshipComp = $components->firstWhere('type', 'flagship_page');
 
         $defaultFlagships = [
-            ['title'=>'INTEGRATED HIGH SPEED TRAIN NETWORK', 'subtitle'=>'Connecting African Capitals and Commercial Centres', 'image_url'=>'https://agenda2063.africa/assets/flagship-1.jpg', 'text'=>'Aims to connect all African capitals and commercial centres through a high-speed train network.', 'link'=>url('/about#flagship')],
-            ['title'=>'AFRICAN COMMODITIES STRATEGY', 'subtitle'=>"Transforming Africa's Commodities Sector", 'image_url'=>'https://agenda2063.africa/assets/flagship-2.jpg', 'text'=>'Developing a continental commodities strategy to enable African countries to add value.', 'link'=>url('/about#flagship')],
-            ['title'=>'AFRICAN CONTINENTAL FREE TRADE AREA (AFCFTA)', 'subtitle'=>'Boosting Intra-African Trade', 'image_url'=>'https://agenda2063.africa/assets/flagship-3.jpg', 'text'=>"Accelerates intra-African trade and strengthens Africa's position in the global market.", 'link'=>url('/about#flagship')],
+            ['title'=>'INTEGRATED HIGH SPEED TRAIN NETWORK', 'subtitle'=>'Connecting African Capitals and Commercial Centres', 'image_url'=>'' . asset('images/flagships/au6.jpg') . '', 'text'=>'Aims to connect all African capitals and commercial centres through a high-speed train network.', 'link'=>url('/about#flagship')],
+            ['title'=>'AFRICAN COMMODITIES STRATEGY', 'subtitle'=>"Transforming Africa's Commodities Sector", 'image_url'=>'' . asset('images/flagships/au7.jpg') . '', 'text'=>'Developing a continental commodities strategy to enable African countries to add value.', 'link'=>url('/about#flagship')],
+            ['title'=>'AFRICAN CONTINENTAL FREE TRADE AREA (AFCFTA)', 'subtitle'=>'Boosting Intra-African Trade', 'image_url'=>'' . asset('images/flagships/au.jpeg') . '', 'text'=>"Accelerates intra-African trade and strengthens Africa's position in the global market.", 'link'=>url('/about#flagship')],
         ];
 
         $items = $flagshipComp['items'] ?? $pageMeta['flagship_items'] ?? $defaultFlagships;
@@ -376,7 +376,7 @@ class PublicController extends Controller
             }
         }
         if (empty($heroImages)) {
-            $heroImages[] = 'https://agenda2063.africa/assets/flagship-1.jpg';
+            $heroImages[] = '' . asset('images/flagships/au6.jpg') . '';
         }
 
         $flagshipData = [

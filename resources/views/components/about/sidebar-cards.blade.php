@@ -2,7 +2,7 @@
     <div class="chairperson-card" data-card="overview">
         <h3>Chairperson's Message</h3>
         <div class="chairperson-image-wrapper">
-            <img src="https://agenda2063.africa/assets/Aspiration1.png" alt="H.E. Mahmoud Ali Youssouf"
+            <img src="{{ asset('images/flagships/Aspiration1.png') }}" alt="H.E. Mahmoud Ali Youssouf"
                 class="chairperson-image">
         </div>
         <h4>H.E. Mahmoud Ali Youssouf</h4>
@@ -20,7 +20,7 @@
     <div class="chairperson-card" data-card="goals" style="display: none;">
         <h3>Priority Goals</h3>
         <div class="chairperson-image-wrapper">
-            <img src="https://agenda2063.africa/assets/Aspiration2.png" alt="Goals"
+            <img src="{{ asset('images/flagships/Aspiration2.png') }}" alt="Goals"
                 class="chairperson-image">
         </div>
         <h4>20 Goals for Transformation</h4>
@@ -38,7 +38,7 @@
     <div class="chairperson-card" data-card="implementation" style="display: none;">
         <h3>Implementation Progress</h3>
         <div class="chairperson-image-wrapper">
-            <img src="https://agenda2063.africa/assets/news4.png" alt="Implementation"
+            <img src="{{ asset('images/flagships/au5.jpg') }}" alt="Implementation"
                 class="chairperson-image">
         </div>
         <h4>First Decade Achievements</h4>
@@ -56,7 +56,7 @@
     <div class="chairperson-card" data-card="flagship" style="display: none;">
         <h3>Flagship Projects</h3>
         <div class="chairperson-image-wrapper">
-            <img src="https://agenda2063.africa/assets/flagship-1.jpg" alt="Flagship Projects"
+            <img src="{{ asset('images/flagships/au6.jpg') }}" alt="Flagship Projects"
                 class="chairperson-image">
         </div>
         <h4>Transformative Initiatives</h4>
@@ -74,7 +74,7 @@
     <div class="chairperson-card" data-card="national" style="display: none;">
         <h3>National Integration</h3>
         <div class="chairperson-image-wrapper">
-            <img src="https://agenda2063.africa/assets/Aspiration3.png" alt="National Integration"
+            <img src="{{ asset('images/flagships/Aspiration3.png') }}" alt="National Integration"
                 class="chairperson-image">
         </div>
         <h4>Country-Level Implementation</h4>
@@ -92,7 +92,7 @@
     <div class="chairperson-card" data-card="frameworks" style="display: none;">
         <h3>Continental Frameworks</h3>
         <div class="chairperson-image-wrapper">
-            <img src="https://agenda2063.africa/assets/Aspiration4.png" alt="Frameworks"
+            <img src="{{ asset('images/flagships/Aspiration4.png') }}" alt="Frameworks"
                 class="chairperson-image">
         </div>
         <h4>Guiding Policies</h4>
@@ -110,7 +110,7 @@
     <div class="chairperson-card" data-card="outcomes" style="display: none;">
         <h3>Expected Outcomes</h3>
         <div class="chairperson-image-wrapper">
-            <img src="https://agenda2063.africa/assets/Aspiration7.png" alt="Outcomes"
+            <img src="{{ asset('images/flagships/Aspiration7.png') }}" alt="Outcomes"
                 class="chairperson-image">
         </div>
         <h4>Transformational Results</h4>

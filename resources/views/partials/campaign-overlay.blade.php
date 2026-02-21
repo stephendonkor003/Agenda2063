@@ -2,7 +2,7 @@
 <div class="campaign-overlay" id="campaignOverlay">
     <div class="campaign-content">
         <div class="campaign-left">
-            <img src="https://agenda2063.africa/assets/Aspiration1.png" alt="Join Campaign" class="campaign-image">
+            <img src="{{ asset('images/flagships/Aspiration1.png') }}" alt="Join Campaign" class="campaign-image">
             <div class="campaign-stats">
                 <div class="stat-item">
                     <span class="stat-number">54</span>

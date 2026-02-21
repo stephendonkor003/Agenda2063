@@ -10,7 +10,7 @@
                 <span class="edu-progress-text" id="eduProgressText">0 / 11</span>
             </div>
             <div class="edu-slide-image" id="eduSlideImage">
-                <img src="https://agenda2063.africa/assets/Aspiration1.png" alt="Slide Image" id="eduSlideImg">
+                <img src="{{ asset('images/flagships/Aspiration1.png') }}" alt="Slide Image" id="eduSlideImg">
             </div>
             <div class="edu-score-section">
                 <div class="edu-score-badge" id="eduScoreBadge">

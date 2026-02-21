@@ -24,10 +24,10 @@
 
     <!-- Page Hero Banner -->
     <section class="page-hero" id="pageHero">
-        <div class="page-hero-bg active" style="background-image: url('https://agenda2063.africa/assets/banner1.jpeg');"></div>
-        <div class="page-hero-bg" style="background-image: url('https://agenda2063.africa/assets/news4.png');"></div>
-        <div class="page-hero-bg" style="background-image: url('https://agenda2063.africa/assets/Aspiration1.png');"></div>
-        <div class="page-hero-bg" style="background-image: url('https://agenda2063.africa/assets/Aspiration3.png');"></div>
+        <div class="page-hero-bg active" style="background-image: url('{{ asset('images/flagships/au1.jpg') }}');"></div>
+        <div class="page-hero-bg" style="background-image: url('{{ asset('images/flagships/au5.jpg') }}');"></div>
+        <div class="page-hero-bg" style="background-image: url('{{ asset('images/flagships/Aspiration1.png') }}');"></div>
+        <div class="page-hero-bg" style="background-image: url('{{ asset('images/flagships/Aspiration3.png') }}');"></div>
         <div class="page-hero-content">
             <span class="hero-label">Resource Library</span>
             <h1>Knowledge Base</h1>
