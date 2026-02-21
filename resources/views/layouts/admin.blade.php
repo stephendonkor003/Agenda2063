@@ -1,4 +1,12 @@
 <!DOCTYPE html>
+@php
+    use App\Models\Setting;
+    $user = Auth::user();
+    $uiTheme = Setting::getValue('admin_theme', 'light');
+    $primaryColor = Setting::getValue('primary_color', '#822b39');
+    $sidebarCompact = Setting::getValue('sidebar_compact', false);
+    $animations = Setting::getValue('animations', true);
+@endphp
 <html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
@@ -7,9 +15,67 @@
     <title>@yield('title', 'Admin Dashboard') - Agenda 2063</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
+    @include('partials.alerts')
     @stack('styles')
+    <style>
+        :root {
+            --admin-primary: {{ $primaryColor }};
+        }
+        .admin-body.sidebar-compact .admin-sidebar {
+            width: 78px;
+        }
+        .admin-body.sidebar-compact .admin-sidebar .nav-link span,
+        .admin-body.sidebar-compact .brand-text,
+        .admin-body.sidebar-compact .nav-label {
+            display: none;
+        }
+        .admin-body.no-anim * {
+            transition: none !important;
+            animation: none !important;
+        }
+        .btn-primary-admin {
+            background: var(--admin-primary);
+            border-color: var(--admin-primary);
+        }
+        .btn-primary-admin:hover {
+            background: color-mix(in srgb, var(--admin-primary) 85%, #000 15%);
+            border-color: color-mix(in srgb, var(--admin-primary) 85%, #000 15%);
+        }
+        .nav-link.active,
+        .nav-link:hover {
+            border-left: 3px solid var(--admin-primary);
+        }
+        .idle-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1200;
+        }
+        .idle-modal.show { display: flex; }
+        .idle-card {
+            background: #fff;
+            padding: 20px 24px;
+            border-radius: 12px;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+            max-width: 380px;
+            width: 90%;
+            text-align: center;
+        }
+        .idle-card h3 { margin: 0 0 8px; }
+        .idle-card p { margin: 0 0 12px; color: #475569; }
+        .idle-count { font-size: 28px; font-weight: 700; color: #b91c1c; margin-bottom: 12px; }
+        .profile-menu { box-shadow:0 10px 24px rgba(0,0,0,0.12); border:1px solid #e5e7eb; }
+        .logout-form { width:100%; }
+        .logout-link { border:none; background:none; padding:10px 12px; cursor:pointer; width:100%; text-align:left; color:#b91c1c; font-weight:600; display:flex; align-items:center; gap:8px; }
+    </style>
 </head>
-<body class="admin-body">
+
+<body class="admin-body {{ $sidebarCompact ? 'sidebar-compact' : '' }} {{ $animations ? '' : 'no-anim' }}"
+      data-saved-theme="{{ $uiTheme }}"
+      style="--admin-primary: {{ $primaryColor }};">
 
     <!-- Sidebar -->
     <aside class="admin-sidebar" id="adminSidebar">
@@ -74,13 +140,41 @@
                     <i class="fa-solid fa-flag"></i>
                     <span>Country Reports</span>
                 </a>
+                <a href="{{ route('admin.quiz-responses') }}" class="nav-link {{ request()->routeIs('admin.quiz-responses') ? 'active' : '' }}">
+                    <i class="fa-solid fa-clipboard-question"></i>
+                    <span>Quiz Responses</span>
+                </a>
+                <a href="{{ route('admin.campaign-subscribers') }}" class="nav-link {{ request()->routeIs('admin.campaign-subscribers') ? 'active' : '' }}">
+                    <i class="fa-solid fa-users-rectangle"></i>
+                    <span>Campaign Subscribers</span>
+                </a>
             </div>
 
             <div class="nav-section">
                 <span class="nav-label">System</span>
+                <a href="{{ route('admin.profile') }}" class="nav-link {{ request()->routeIs('admin.profile*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-user-lock"></i>
+                    <span>Security & Profile</span>
+                </a>
                 <a href="{{ route('admin.users') }}" class="nav-link {{ request()->routeIs('admin.users') ? 'active' : '' }}">
                     <i class="fa-solid fa-users"></i>
                     <span>Users</span>
+                </a>
+                <a href="{{ route('admin.departments') }}" class="nav-link {{ request()->routeIs('admin.departments') ? 'active' : '' }}">
+                    <i class="fa-solid fa-building"></i>
+                    <span>Departments</span>
+                </a>
+                <a href="{{ route('admin.roles') }}" class="nav-link {{ request()->routeIs('admin.roles') ? 'active' : '' }}">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <span>Roles</span>
+                </a>
+                <a href="{{ route('admin.permissions') }}" class="nav-link {{ request()->routeIs('admin.permissions') ? 'active' : '' }}">
+                    <i class="fa-solid fa-key"></i>
+                    <span>Permissions</span>
+                </a>
+                <a href="{{ route('admin.public.nav') }}" class="nav-link {{ request()->routeIs('admin.public.*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-eye"></i>
+                    <span>Public Visibility</span>
                 </a>
                 <a href="{{ route('admin.settings') }}" class="nav-link {{ request()->routeIs('admin.settings') ? 'active' : '' }}">
                     <i class="fa-solid fa-cog"></i>
@@ -95,8 +189,8 @@
                     <i class="fa-solid fa-user"></i>
                 </div>
                 <div class="user-info">
-                    <span class="user-name">Admin User</span>
-                    <span class="user-role">Super Admin</span>
+                    <span class="user-name">{{ $user?->name ?? 'Admin' }}</span>
+                    <span class="user-role">{{ ($user?->is_admin ?? false) ? 'Super Admin' : 'User' }}</span>
                 </div>
             </div>
         </div>
@@ -136,14 +230,19 @@
                         <div class="profile-avatar">
                             <i class="fa-solid fa-user"></i>
                         </div>
-                        <span class="profile-name">Admin</span>
+                        <span class="profile-name">{{ $user?->name ?? 'Admin' }}</span>
                         <i class="fa-solid fa-chevron-down"></i>
                     </button>
                     <div class="profile-menu">
-                        <a href="#"><i class="fa-solid fa-user-circle"></i> My Profile</a>
-                        <a href="#"><i class="fa-solid fa-cog"></i> Settings</a>
+                        <a href="{{ route('admin.profile') }}"><i class="fa-solid fa-user-circle"></i> My Profile</a>
+                        <a href="{{ route('admin.settings') }}"><i class="fa-solid fa-cog"></i> Settings</a>
                         <div class="menu-divider"></div>
-                        <a href="{{ route('login') }}" class="logout-link"><i class="fa-solid fa-sign-out-alt"></i> Logout</a>
+                        <form method="POST" action="{{ route('logout') }}" class="logout-form">
+                            @csrf
+                            <button type="submit" class="logout-link">
+                                <i class="fa-solid fa-right-from-bracket"></i> Logout
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -164,6 +263,19 @@
             </div>
         </footer>
     </div>
+
+    <!-- Idle timeout modal -->
+    <div id="idleModal" class="idle-modal">
+        <div class="idle-card">
+            <h3>Session Timeout</h3>
+            <p>You will be logged out soon due to inactivity.</p>
+            <div class="idle-count" id="idleCountdown">120</div>
+            <button class="btn-primary-admin" onclick="document.getElementById('idleLogoutForm').submit()">Logout now</button>
+        </div>
+    </div>
+    <form id="idleLogoutForm" method="POST" action="{{ route('logout') }}" style="display:none;">
+        @csrf
+    </form>
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -188,7 +300,7 @@
         });
 
         // Theme toggle
-        const savedTheme = localStorage.getItem('admin-theme') || 'light';
+        const savedTheme = localStorage.getItem('admin-theme') || html.dataset.savedTheme || 'light';
         html.setAttribute('data-theme', savedTheme);
         updateThemeIcon(savedTheme);
 
@@ -220,6 +332,46 @@
                 sidebar.classList.add('collapsed');
             }
         });
+
+        // Idle timeout warning (3 min warning, 5 min logout)
+        const warningAt = 180000; // 3 minutes
+        const logoutAt = 300000; // 5 minutes
+        let warningTimer, logoutTimer;
+        const idleModal = document.getElementById('idleModal');
+        const idleCountdown = document.getElementById('idleCountdown');
+        const logoutForm = document.getElementById('idleLogoutForm');
+
+        const resetTimers = () => {
+            clearTimeout(warningTimer);
+            clearTimeout(logoutTimer);
+            idleModal?.classList.remove('show');
+            startTimers();
+        };
+
+        const startTimers = () => {
+            warningTimer = setTimeout(() => {
+                let remaining = Math.floor((logoutAt - warningAt) / 1000);
+                idleModal?.classList.add('show');
+                idleCountdown.textContent = remaining;
+                const interval = setInterval(() => {
+                    remaining--;
+                    idleCountdown.textContent = remaining;
+                    if (remaining <= 0) {
+                        clearInterval(interval);
+                    }
+                }, 1000);
+            }, warningAt);
+
+            logoutTimer = setTimeout(() => {
+                if (logoutForm) logoutForm.submit();
+            }, logoutAt);
+        };
+
+        ['click','mousemove','keydown','scroll','touchstart'].forEach(evt => {
+            document.addEventListener(evt, resetTimers, { passive: true });
+        });
+
+        startTimers();
     });
     </script>
     @stack('scripts')

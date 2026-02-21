@@ -159,31 +159,22 @@ document.addEventListener('DOMContentLoaded', () => {
   
   cardLinks.forEach(link => {
     link.addEventListener('click', (e) => {
-      e.preventDefault();
-      const card = link.closest('.news-event-card');
-      const title = card.querySelector('h4').textContent;
-      const category = card.getAttribute('data-category');
-      
-      console.log(`Opening ${category}: ${title}`);
-      
-      // In a real application, this would navigate to the full article/event page
       if (link.classList.contains('register-link')) {
+        e.preventDefault();
+        const card = link.closest('.news-event-card');
+        const title = card?.querySelector('h4')?.textContent || 'Event';
         alert(`Registration page for "${title}" would open here!`);
-      } else {
-        // Navigate to news detail page
-        window.location.href = 'news-detail.html';
+        return;
       }
+      // default behavior follows the anchor href to the real detail page
     });
   });
 
   // Featured News Button
   const readFullBtn = document.querySelector('.read-full-btn');
   
-  if (readFullBtn) {
-    readFullBtn.addEventListener('click', () => {
-      // Navigate to news detail page
-      window.location.href = 'news-detail.html';
-    });
+  if (readFullBtn && readFullBtn.getAttribute('href')) {
+    // allow default navigation via href; nothing extra needed
   }
 
   // Hero Background Rotation

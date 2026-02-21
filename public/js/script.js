@@ -101,23 +101,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const pressReleases = [
             {
                 text: "African Union launches 2024 Agenda 2063 Continental Progress Report at Addis Ababa Summit",
-                link: "news-detail.html"
+                link: "/news"
             },
             {
                 text: "AfCFTA Trade Volume Surpasses $50 Billion Milestone - A Historic Achievement for Africa",
-                link: "news-detail.html"
+                link: "/news"
             },
             {
                 text: "Continental Infrastructure Projects Receive $5 Billion Investment Boost",
-                link: "news-detail.html"
+                link: "/news"
             },
             {
                 text: "Pan-African University Expands to 10 New Campuses Across the Continent",
-                link: "news-detail.html"
+                link: "/news"
             },
             {
                 text: "Africa Launches Continental Climate Resilience Strategy at COP28",
-                link: "news-detail.html"
+                link: "/news"
             }
         ];
 

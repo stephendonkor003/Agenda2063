@@ -1,0 +1,11 @@
+<?php
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->get('/user', function (Request $request) {
+    return $request->user();
+});
+
+Route::post('/analytics', [\App\Http\Controllers\Api\AnalyticsIngestController::class, 'store'])
+    ->middleware('throttle:60,1');

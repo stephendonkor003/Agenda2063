@@ -7,6 +7,9 @@
     <title>@yield('title', 'Agenda 2063 - The Africa We Want')</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    @if(file_exists(public_path('css/flagship.css')))
+    <link rel="stylesheet" href="{{ asset('css/flagship.css') }}">
+    @endif
     @stack('styles')
 </head>
 <body>

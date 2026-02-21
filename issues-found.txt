@@ -1,0 +1,145 @@
+Audit summary � 2026-02-11
+
+Fixed today
+- Guarded AppServiceProvider boot logic so missing tables (settings/navigation/footer) no longer crash fresh installs; settings now also push session timeout + login attempt limits into config. [app/Providers/AppServiceProvider.php]
+- Login POST is throttled using configurable max_login_attempts. [routes/web.php]
+- Idle timeout respects session_timeout setting instead of a hardcoded 300s. [app/Http/Middleware/IdleTimeout.php]
+- Analytics ingest API is now exposed at POST /api/analytics with throttling. [routes/api.php]
+- Public analytics tracking is wrapped in try/catch so DB issues don�t 500 the site. [app/Http/Middleware/TrackPublicAnalytics.php]
+- Checkbox/toggle values now persist correctly when turned off (admin settings, nav/footer links, sliders). [app/Http/Controllers/AdminController.php, app/Http/Controllers/AdminPublicVisibilityController.php]
+
+Recommended next steps
+- Run `php artisan migrate --seed` to create the new tables and seed defaults.
+- Start a queue worker for AggregateAnalytics jobs or convert to sync if queues aren�t used.
+- Add feature tests for CRUD flows (news, publications, flags, settings) and a smoke test for the public site with DB off to ensure analytics fails safely.
+
+
+Auth & Admin Access (web.php, app/Http/Middleware/*):
+tighten login throttling/lockout, 2FA toggle,
+idle timeout tied to settings; add password
+reset + force-reset flows; audit Sanctum/API token policy.
+
+Users / Roles / Permissions (AdminUsersController.php,
+ AdminRolesController.php, AdminPermissionsController.php,
+  app/Models/User|Role|Permission): complete
+  CRUD with invite/email flow, role cloning,
+   per-department scoping, activity log for admin changes.
+
+
+Departments (AdminDepartmentsController.php, app/Models/Department):
+CRUD plus soft delete + reassignment, department-specific
+ dashboards and content filters.
+
+
+
+ Settings (AdminController.php, app/Models/Setting):
+ centralize platform/contact/timezone/email,
+ session/login/security caps, backup knobs;
+ add UI validation + test coverage; ensure
+  .env overrides precedence.
+
+
+
+Navigation & Footer CMS (AdminPublicVisibilityController.php,
+NavigationLink, FooterLink, HomeSlider):
+ reorder via drag/drop, publish/draft,
+ per-language labels, link analytics, version history.
+
+
+
+ Home Sliders / Hero content (HomeSlider):
+  image upload with cropping, CTA validation,
+  schedule on/off, accessibility checks (alt text/contrast).
+
+
+  News & Events (AdminNewsController.php, NewsItem, c
+  NewsCategory, attachments): full lifecycle
+  (draft/schedule/publish), rich text with media,
+  geotagging, category taxonomy, press vs news vs
+   events views, RSS feed, SEO fields, front-end
+   list/detail.
+
+
+
+   Publications (AdminPublicationsController.php,
+   Publication, PublicationFile): multi-file support,
+    approval workflow (pending/approved/rejected),
+     departmental scope, download tracking, DOI/ISBN
+     fields, language filter, cover image, search facets.
+
+
+
+     Knowledge Base / Downloads (AdminKnowledgeBaseController.php,
+     KnowledgeDocument, KnowledgeCategory,
+     KnowledgeDownloadController): hierarchical
+     categories, file hosting + external links,
+      language tagging, hit counts, SEO slugs,
+      featured/pin, transcript/summary fields.
+
+
+
+    Flagship Projects & Updates (AdminFlagshipProjectsController.php,
+     FlagshipProject, FlagshipUpdate, FlagshipUpdateFile):
+     status/progress, image/banner, update approvals,
+      attachments, timeline view, public listing by
+      status/department.
+
+
+
+      Country & Regional Reports (AdminCountryReportsController.php,
+      AdminRegionalReportsController.php, CountryReport,
+       RegionalReport): data + file upload, status,
+        year/region filters, map embedding hooks, versioning.
+
+
+Goals Tracking / External Data Sources
+(GoalsTrackingController.php, ExternalDataSource):
+ manage data source configs, sync frequency/status,
+  basic metrics dashboard;
+later: background sync jobs + error alerts.
+
+
+
+
+Analytics & Observability (TrackPublicAnalytics middleware,
+AnalyticsEvent, AnalyticsSession, AdminAnalyticsController.php,
+AggregateAnalytics job): ensure non-blocking writes, ingest API
+ (POST /api/analytics), caching, charts for
+  pageviews/downloads/quiz/subscriptions,
+  top pages/countries; add retention/cleanup job
+   and PII minimization.
+
+
+
+Campaign & Engagement (CampaignController.php,
+AdminCampaignSubscribersController.php,
+QuizController.php, AdminQuizResponsesController.php):
+signup/opt-in with double-confirmation, export lists,
+ quiz responses analysis, email piping to Mailchimp/SES
+  later.
+
+
+  Public Pages (PublicController.php views): homepage,
+   knowledge, news, flagship, frameworks—wire them to CMS
+    data (currently static placeholders),
+   add caching, breadcrumbs, SEO meta.
+
+
+
+   Files & Media (storage/public): enforce mime/size,
+   virus scan hook, image optimization, signed URLs for
+   private docs, consistent CDN/base URL handling.
+
+
+
+   Security hardening: CSRF already on web; add content
+   security policy headers, rate limits on write endpoints,
+   audit logs, IP whitelist toggle, enforce HTTPS/secure
+    cookies, header hardening.
+
+
+
+    Testing & QA: feature tests for each CRUD/approval flow,
+     route coverage, middleware behaviors
+      (idle timeout, throttle), and a smoke test when
+      DB tables are missing to ensure graceful boot.

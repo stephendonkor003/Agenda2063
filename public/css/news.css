@@ -164,6 +164,12 @@
   min-height: 100vh;
 }
 
+.news-events-content .content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
 /* Filter Section */
 .filter-section {
   display: flex;

@@ -117,63 +117,92 @@
 </section>
 
 <!-- Footer -->
+@php
+    use Illuminate\Support\Str;
+    $groups = [
+        'about' => 'About',
+        'resources' => 'Resources',
+        'legal' => 'Legal',
+        'social' => 'Social',
+    ];
+    $footerLinks = $footerLinks ?? collect();
+    $iconMap = [
+        'facebook' => 'facebook-f',
+        'twitter' => 'twitter',
+        'youtube' => 'youtube',
+        'instagram' => 'instagram',
+        'linkedin' => 'linkedin',
+    ];
+@endphp
 <footer class="main-footer">
     <div class="footer-content">
-        <div class="footer-column">
-            <h4>About Agenda 2063</h4>
-            <p>AGENDA 2063 is Africa's blueprint and master plan for transforming Africa into the global powerhouse of the future.</p>
-            <div class="footer-contact">
-                <strong>Information & Communication Directorate</strong>
+        @forelse($groups as $section => $heading)
+            @php $items = $footerLinks->get($section, collect()); @endphp
+            @if($items->count())
+                <div class="footer-column">
+                    <h4>{{ $heading }}</h4>
+                    <ul>
+                        @foreach($items as $item)
+                            <li>
+                                <a href="{{ $item->url }}"
+                                   target="{{ $item->open_in_new_tab ? '_blank' : '_self' }}"
+                                   rel="{{ $item->open_in_new_tab ? 'noopener' : '' }}">
+                                    {{ $item->label }}
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+        @empty
+        @endforelse
+
+        @if($footerLinks->isEmpty())
+            <!-- Fallback content when no footer links are configured -->
+            <div class="footer-column">
+                <h4>About Agenda 2063</h4>
+                <p>AGENDA 2063 is Africa's blueprint and master plan for transforming Africa into the global powerhouse of the future.</p>
             </div>
-        </div>
-        <div class="footer-column">
-            <h4>Flagship Projects</h4>
-            <ul>
-                <li><a href="#">African Continental Free Trade Area (AfCFTA)</a></li>
-                <li><a href="#">African Commodity Strategy</a></li>
-                <li><a href="#">Single Africa Air Transport Market (SAATM)</a></li>
-                <li><a href="#">Continental High-Speed Train Network</a></li>
-                <li><a href="#">Pan-African E-Network</a></li>
-                <li><a href="#">Cyber Security</a></li>
-                <li><a href="#">Pan African Virtual and E-University (PAVEU)</a></li>
-            </ul>
-        </div>
-        <div class="footer-column">
-            <h4>Aspirations</h4>
-            <ul>
-                <li><a href="#">A prosperous Africa based on inclusive growth and sustainable development</a></li>
-                <li><a href="#">An integrated continent, politically united</a></li>
-                <li><a href="#">An Africa of good governance, democracy, respect for human rights</a></li>
-                <li><a href="#">A peaceful and secure Africa</a></li>
-            </ul>
-        </div>
-        <div class="footer-column">
-            <h4>Quick Links</h4>
-            <ul>
-                <li><a href="{{ url('/') }}">Home</a></li>
-                <li><a href="{{ url('/about') }}">About Us</a></li>
-                <li><a href="#">Member States</a></li>
-                <li><a href="#">Resources</a></li>
-                <li><a href="#">Download AU App</a></li>
-                <li><a href="#">Get Involved</a></li>
-            </ul>
-        </div>
+            <div class="footer-column">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="{{ url('/') }}">Home</a></li>
+                    <li><a href="{{ url('/about') }}">About Us</a></li>
+                    <li><a href="#">Resources</a></li>
+                    <li><a href="#">Contact</a></li>
+                </ul>
+            </div>
+        @endif
     </div>
+
     <div class="footer-bottom">
         <div class="footer-social">
             <h4>Follow Us</h4>
             <div class="social-icons">
-                <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
-                <a href="#"><i class="fa-brands fa-twitter"></i></a>
-                <a href="#"><i class="fa-brands fa-youtube"></i></a>
-                <a href="#"><i class="fa-brands fa-instagram"></i></a>
+                @php $social = $footerLinks->get('social', collect()); @endphp
+                @forelse($social as $link)
+                    @php $key = Str::slug($link->label); $icon = $iconMap[$key] ?? 'link'; @endphp
+                    <a href="{{ $link->url }}" target="{{ $link->open_in_new_tab ? '_blank' : '_self' }}" rel="{{ $link->open_in_new_tab ? 'noopener' : '' }}">
+                        <i class="fa-brands fa-{{ $icon }}"></i>
+                    </a>
+                @empty
+                    <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#"><i class="fa-brands fa-twitter"></i></a>
+                    <a href="#"><i class="fa-brands fa-youtube"></i></a>
+                    <a href="#"><i class="fa-brands fa-instagram"></i></a>
+                @endforelse
             </div>
         </div>
         <div class="footer-links">
-            <a href="#">Contact Us</a>
-            <a href="#">Cookie Policy</a>
-            <a href="#">Privacy Notice</a>
-            <a href="#">Site Terms</a>
+            @php $legal = $footerLinks->get('legal', collect()); @endphp
+            @forelse($legal as $link)
+                <a href="{{ $link->url }}" target="{{ $link->open_in_new_tab ? '_blank' : '_self' }}" rel="{{ $link->open_in_new_tab ? 'noopener' : '' }}">{{ $link->label }}</a>
+            @empty
+                <a href="#">Contact Us</a>
+                <a href="#">Cookie Policy</a>
+                <a href="#">Privacy Notice</a>
+                <a href="#">Site Terms</a>
+            @endforelse
         </div>
         <div class="copyright">
             Copyright &copy; Agenda 2063
