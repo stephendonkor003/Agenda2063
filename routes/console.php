@@ -23,3 +23,13 @@ Schedule::command('platform:status-report')
         \Illuminate\Support\Facades\Log::error('platform:status-report scheduled job failed');
     });
 
+// Send daily Agenda 2063 aspiration spotlight to all newsletter subscribers
+// Rotates through all 7 aspirations cyclically (one per day, repeating)
+Schedule::command('aspirations:daily-broadcast')
+    ->dailyAt('08:00')         // every day at 08:00 UTC
+    ->withoutOverlapping()
+    ->runInBackground()
+    ->onFailure(function () {
+        \Illuminate\Support\Facades\Log::error('aspirations:daily-broadcast scheduled job failed');
+    });
+
