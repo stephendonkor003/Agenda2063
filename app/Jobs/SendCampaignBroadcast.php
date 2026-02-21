@@ -26,7 +26,7 @@ class SendCampaignBroadcast implements ShouldQueue
     public function handle(): void
     {
         foreach ($this->emails as $email) {
-            Mail::to($email)->queue(new CampaignBroadcastMail(
+            Mail::to($email)->send(new CampaignBroadcastMail(
                 $this->payload['subject'],
                 $this->payload['preview'] ?? '',
                 $this->payload['body_html'],
