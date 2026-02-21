@@ -79,7 +79,7 @@
     <div class="dash-card" style="margin-top:12px;">
         <div class="card-header"><h3><i class="fa-solid fa-bullhorn"></i> Broadcast to Subscribers</h3></div>
         <div class="card-body">
-            <form method="POST" action="{{ route('campaign-subscribers.broadcast') }}">
+            <form method="POST" action="{{ route('admin.campaign-subscribers.broadcast') }}">
                 @csrf
                 <div class="form-grid">
                     <label>Subject
