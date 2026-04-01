@@ -12,6 +12,7 @@ class NavigationLink extends Model
         'location',
         'locale',
         'position',
+        'parent_id',
         'open_in_new_tab',
         'is_active',
         'clicks',
@@ -21,4 +22,14 @@ class NavigationLink extends Model
     protected $casts = [
         'page_meta' => 'array',
     ];
+
+    public function parent()
+    {
+        return $this->belongsTo(self::class, 'parent_id');
+    }
+
+    public function children()
+    {
+        return $this->hasMany(self::class, 'parent_id')->orderBy('position');
+    }
 }

@@ -69,10 +69,10 @@ class TrackPublicAnalytics
 
             $meta = [];
             if ($type === 'quiz') {
-                $meta = [
-                    'name' => $request->input('first_name') ?? $request->input('name'),
-                    'email' => $request->input('email'),
-                ];
+                $meta = array_filter([
+                    'quiz_type' => $request->input('quiz_type'),
+                    'slide_number' => $request->input('slide_number'),
+                ], fn ($value) => $value !== null && $value !== '');
             }
 
             AnalyticsEvent::create([
@@ -107,7 +107,10 @@ class TrackPublicAnalytics
     protected function detectCountry(Request $request): ?string
     {
         $headerCountry = $request->header('CF-IPCountry') ?? $request->header('X-Country-Code');
-        if ($headerCountry) return substr($headerCountry, 0, 3);
+        if ($headerCountry) {
+            return Str::upper(substr($headerCountry, 0, 3));
+        }
+
         // fallback: leave null (no local geo DB available)
         return null;
     }

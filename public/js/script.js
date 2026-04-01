@@ -95,6 +95,183 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // External Link Transition Modal
+    const externalLinkModal = document.getElementById('externalLinkModal');
+    const externalLinkDomain = document.getElementById('externalLinkDomain');
+    const externalLinkDestination = document.getElementById('externalLinkDestination');
+    const externalLinkCountdown = document.getElementById('externalLinkCountdown');
+    const externalLinkProgress = document.getElementById('externalLinkProgress');
+    const externalLinkClose = document.getElementById('externalLinkClose');
+    const externalLinkStay = document.getElementById('externalLinkStay');
+    const externalLinkContinue = document.getElementById('externalLinkContinue');
+    const externalTransitionSeconds = 5;
+    let pendingExternalUrl = null;
+    let pendingExternalTarget = '_self';
+    let externalLinkTimer = null;
+    let externalCountdownTimer = null;
+    let previousBodyOverflow = '';
+
+    function clearExternalLinkTimers() {
+        clearTimeout(externalLinkTimer);
+        clearInterval(externalCountdownTimer);
+        externalLinkTimer = null;
+        externalCountdownTimer = null;
+    }
+
+    function hideExternalLinkModal() {
+        if (!externalLinkModal) {
+            return;
+        }
+
+        clearExternalLinkTimers();
+        externalLinkModal.classList.remove('show');
+        externalLinkModal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = previousBodyOverflow;
+        pendingExternalUrl = null;
+        pendingExternalTarget = '_self';
+
+        if (externalLinkProgress) {
+            externalLinkProgress.classList.remove('is-animating');
+        }
+    }
+
+    function continueToExternalUrl() {
+        if (!pendingExternalUrl) {
+            hideExternalLinkModal();
+            return;
+        }
+
+        const destination = pendingExternalUrl.toString();
+        const target = pendingExternalTarget;
+
+        hideExternalLinkModal();
+
+        if (target === '_blank') {
+            const popup = window.open(destination, '_blank', 'noopener');
+
+            if (popup) {
+                return;
+            }
+        }
+
+        window.location.assign(destination);
+    }
+
+    function showExternalLinkModal(url, target = '_self') {
+        if (!externalLinkModal) {
+            if (target === '_blank') {
+                const popup = window.open(url.toString(), '_blank', 'noopener');
+
+                if (popup) {
+                    return;
+                }
+            }
+
+            window.location.assign(url.toString());
+            return;
+        }
+
+        clearExternalLinkTimers();
+        pendingExternalUrl = url;
+        pendingExternalTarget = target;
+        previousBodyOverflow = document.body.style.overflow;
+
+        const cleanDomain = url.hostname.replace(/^www\./i, '');
+
+        if (externalLinkDomain) {
+            externalLinkDomain.textContent = cleanDomain;
+        }
+
+        if (externalLinkDestination) {
+            externalLinkDestination.textContent = cleanDomain;
+        }
+
+        if (externalLinkCountdown) {
+            externalLinkCountdown.textContent = String(externalTransitionSeconds);
+        }
+
+        if (externalLinkProgress) {
+            externalLinkProgress.classList.remove('is-animating');
+            void externalLinkProgress.offsetWidth;
+            externalLinkProgress.classList.add('is-animating');
+        }
+
+        externalLinkModal.classList.add('show');
+        externalLinkModal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+
+        let remainingSeconds = externalTransitionSeconds;
+        externalCountdownTimer = setInterval(() => {
+            remainingSeconds -= 1;
+
+            if (externalLinkCountdown) {
+                externalLinkCountdown.textContent = String(Math.max(remainingSeconds, 0));
+            }
+
+            if (remainingSeconds <= 0) {
+                clearInterval(externalCountdownTimer);
+            }
+        }, 1000);
+
+        externalLinkTimer = setTimeout(() => {
+            continueToExternalUrl();
+        }, externalTransitionSeconds * 1000);
+    }
+
+    if (externalLinkModal) {
+        externalLinkClose?.addEventListener('click', hideExternalLinkModal);
+        externalLinkStay?.addEventListener('click', hideExternalLinkModal);
+        externalLinkContinue?.addEventListener('click', continueToExternalUrl);
+
+        externalLinkModal.addEventListener('click', (event) => {
+            if (event.target instanceof HTMLElement && event.target.dataset.externalClose === 'true') {
+                hideExternalLinkModal();
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && externalLinkModal.classList.contains('show')) {
+                hideExternalLinkModal();
+            }
+        });
+
+        document.addEventListener('click', (event) => {
+            if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+                return;
+            }
+
+            const clickedElement = event.target instanceof Element ? event.target : null;
+            const link = clickedElement ? clickedElement.closest('a[href]') : null;
+
+            if (!link || link.closest('#externalLinkModal') || link.dataset.externalSkip === 'true' || link.hasAttribute('download')) {
+                return;
+            }
+
+            const rawHref = (link.getAttribute('href') || '').trim();
+
+            if (!rawHref || rawHref.startsWith('#') || rawHref.startsWith('mailto:') || rawHref.startsWith('tel:') || rawHref.startsWith('javascript:')) {
+                return;
+            }
+
+            let destinationUrl;
+
+            try {
+                destinationUrl = new URL(link.href, window.location.origin);
+            } catch (error) {
+                return;
+            }
+
+            if (!['http:', 'https:'].includes(destinationUrl.protocol) || destinationUrl.origin === window.location.origin) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            showExternalLinkModal(destinationUrl, link.target || '_self');
+        }, true);
+    }
+
     // Press Release Rotator
     const pressReleaseLink = document.getElementById('pressReleaseLink');
     if (pressReleaseLink) {
@@ -1682,7 +1859,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.main-nav')) {
             document.querySelectorAll('.mega-dropdown').forEach(dropdown => {
-                dropdown.style.display = 'none';
+                dropdown.classList.remove('active');
+            });
+
+            document.querySelectorAll('.has-dropdown > a i').forEach(icon => {
+                icon.style.transform = '';
             });
         }
     });
@@ -2461,5 +2642,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         });
+    }
+
+    const flagshipCards = document.querySelectorAll('.flagship-section .flagship-card');
+    if (flagshipCards.length > 0) {
+        const revealFlagshipCards = () => {
+            flagshipCards.forEach(card => card.classList.add('is-visible'));
+        };
+
+        if ('IntersectionObserver' in window) {
+            const flagshipSection = document.querySelector('.flagship-section');
+            const flagshipObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (!entry.isIntersecting) {
+                        return;
+                    }
+
+                    revealFlagshipCards();
+                    observer.disconnect();
+                });
+            }, {
+                threshold: 0.2,
+                rootMargin: '0px 0px -80px 0px'
+            });
+
+            if (flagshipSection) {
+                flagshipObserver.observe(flagshipSection);
+            } else {
+                revealFlagshipCards();
+            }
+        } else {
+            revealFlagshipCards();
+        }
     }
 });

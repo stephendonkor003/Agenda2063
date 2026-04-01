@@ -128,6 +128,94 @@
   border-radius: 10px;
 }
 
+.related-news-card {
+  overflow: hidden;
+}
+
+.related-news-header h4 {
+  margin: 0;
+}
+
+.related-news-viewport {
+  overflow: hidden;
+  margin-top: 14px;
+}
+
+.related-news-track {
+  display: flex;
+  transition: transform 0.65s ease;
+  will-change: transform;
+}
+
+.related-news-item {
+  min-width: 100%;
+}
+
+.related-news-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.related-news-image {
+  width: 100%;
+  padding-top: 62%;
+  border-radius: 10px;
+  background-size: cover;
+  background-position: center;
+}
+
+.related-news-copy {
+  padding-top: 12px;
+}
+
+.related-news-category {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(149, 31, 54, 0.08);
+  color: #951f36;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.related-news-copy h5 {
+  margin: 12px 0 8px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #1f2937;
+}
+
+.related-news-copy p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.related-news-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.related-news-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #d1d5db;
+  transition: transform 0.25s ease, background-color 0.25s ease;
+}
+
+.related-news-dot.active {
+  background: #951f36;
+  transform: scale(1.35);
+}
+
 @media (max-width: 1024px) {
   .news-detail-layout {
     grid-template-columns: 1fr;

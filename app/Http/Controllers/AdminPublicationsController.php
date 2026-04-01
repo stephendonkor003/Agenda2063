@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Publication;
 use App\Models\PublicationFile;
 use App\Models\Department;
+use App\Rules\SafeUrl;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -57,6 +58,12 @@ class AdminPublicationsController extends Controller
     {
         $data = $this->validated($request, null, $request->user());
         $data['slug'] = Str::slug($data['title']);
+
+        if ($request->hasFile('banner')) {
+            $path = $request->file('banner')->store('publications/banners', 'public');
+            $data['image_url'] = Storage::url($path);
+        }
+
         $pub = Publication::create($data);
 
         $this->syncFiles($pub, $request);
@@ -74,6 +81,13 @@ class AdminPublicationsController extends Controller
         if (empty($data['slug'])) {
             $data['slug'] = Str::slug($data['title']);
         }
+
+        if ($request->hasFile('banner')) {
+            $this->deletePublicUrl($publication->image_url);
+            $path = $request->file('banner')->store('publications/banners', 'public');
+            $data['image_url'] = Storage::url($path);
+        }
+
         $publication->update($data);
 
         $this->syncFiles($publication, $request);
@@ -88,6 +102,10 @@ class AdminPublicationsController extends Controller
 
     public function destroy(Publication $publication)
     {
+        $this->deletePublicUrl($publication->image_url);
+        foreach ($publication->files as $file) {
+            $this->deletePublicUrl($file->file_url);
+        }
         $publication->delete();
         AuditLog::record('publication.deleted', $publication, request()->user(), [
             'title' => $publication->title,
@@ -151,25 +169,20 @@ class AdminPublicationsController extends Controller
             'language' => ['nullable', 'string', 'max:50'],
             'year' => ['nullable', 'integer', 'min:1900', 'max:' . date('Y')],
             'summary' => ['nullable', 'string'],
-            'file_url' => ['nullable', 'url', 'max:500'], // legacy single link
+            'file_url' => ['nullable', new SafeUrl(true), 'max:500'],
             'files' => ['array'],
-            'files.*.file_url' => ['required_with:files', 'url', 'max:500'],
+            'files.*.file_url' => ['required_with:files', new SafeUrl(true), 'max:500'],
             'files.*.label' => ['nullable', 'string', 'max:255'],
             'upload_files' => ['array'],
             'upload_files.*' => ['file', 'max:10240', 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt'],
             'department_id' => [$canViewAll ? 'required' : 'nullable', 'exists:departments,id'],
             'status' => ['nullable', 'in:pending,approved,rejected'],
-            'banner' => ['nullable', 'image', 'max:5120'],
+            'banner' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:5120'],
         ]);
 
         $validated['department_id'] = $canViewAll
             ? $validated['department_id']
             : ($user?->department_id);
-
-        if ($request->file('banner')) {
-            $path = $request->file('banner')->store('publications/banners', 'public');
-            $validated['image_url'] = Storage::url($path);
-        }
 
         if (! $ignoreId) {
             $validated['created_by'] = $user?->id;
@@ -184,12 +197,17 @@ class AdminPublicationsController extends Controller
         $files = collect($request->input('files', []))
             ->filter(fn ($f) => !empty($f['file_url']))
             ->values();
+        $retainedUrls = $files->pluck('file_url')->filter()->values();
+
+        if ($request->filled('file_url') && $files->isEmpty()) {
+            $retainedUrls->push($request->input('file_url'));
+        }
 
         // handle uploaded files and convert to file entries
         $uploads = collect($request->file('upload_files', []))
             ->filter()
             ->map(function ($file) {
-                $path = $file->store('publications', 'public');
+                $path = $file->store('publications/files', 'public');
                 return [
                     'file_url' => Storage::url($path),
                     'label' => $file->getClientOriginalName(),
@@ -197,6 +215,12 @@ class AdminPublicationsController extends Controller
             });
 
         $allFiles = $files->concat($uploads)->values();
+
+        foreach ($pub->files as $existingFile) {
+            if (! $retainedUrls->contains($existingFile->file_url)) {
+                $this->deletePublicUrl($existingFile->file_url);
+            }
+        }
 
         $pub->files()->delete();
 
@@ -213,6 +237,19 @@ class AdminPublicationsController extends Controller
                 'file_url' => $request->input('file_url'),
                 'label' => 'Primary File',
             ]);
+        }
+    }
+
+    protected function deletePublicUrl(?string $url): void
+    {
+        if (! $url || ! str_starts_with($url, '/storage/')) {
+            return;
+        }
+
+        $path = ltrim(Str::after($url, '/storage/'), '/');
+
+        if ($path !== '' && Storage::disk('public')->exists($path)) {
+            Storage::disk('public')->delete($path);
         }
     }
 }

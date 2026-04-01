@@ -10,7 +10,7 @@ class SetLocale
 {
     public function handle(Request $request, Closure $next)
     {
-        $supported = ['en','fr','pt','ar'];
+        $supported = config('app.supported_locales', ['en', 'fr', 'pt', 'ar']);
 
         if ($request->has('lang')) {
             $lang = strtolower($request->get('lang'));

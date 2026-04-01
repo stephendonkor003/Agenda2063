@@ -6,9 +6,11 @@ use App\Models\Department;
 use App\Models\NewsAttachment;
 use App\Models\NewsCategory;
 use App\Models\NewsItem;
+use App\Rules\SafeUrl;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class AdminNewsController extends Controller
 {
@@ -38,6 +40,7 @@ class AdminNewsController extends Controller
     public function store(Request $request)
     {
         $data = $this->validateNews($request);
+        $data = $this->normalizePublicationFields($data);
         $user = $request->user();
         $data['department_id'] = $this->resolveDepartment($request);
         // keep legacy text category for backwards compatibility
@@ -64,6 +67,7 @@ class AdminNewsController extends Controller
     {
         $this->authorizeNews($request, $news);
         $data = $this->validateNews($request, $news->id);
+        $data = $this->normalizePublicationFields($data, $news);
         $data['department_id'] = $this->resolveDepartment($request);
         if ($data['category_id']) {
             $cat = NewsCategory::find($data['category_id']);
@@ -153,19 +157,32 @@ class AdminNewsController extends Controller
             'category_id' => ['nullable', 'exists:news_categories,id'],
             'summary' => ['nullable', 'string'],
             'body' => ['nullable', 'string'],
-            'published_at' => ['nullable', 'date'],
+            'published_at' => [
+                'nullable',
+                'date',
+                Rule::requiredIf(fn () => $request->input('status') === 'scheduled'),
+            ],
             'starts_at' => ['nullable', 'date'],
             'ends_at' => ['nullable', 'date', 'after_or_equal:starts_at'],
             'location' => ['nullable', 'string', 'max:255'],
             'country_code' => ['nullable', 'string', 'max:3'],
             'region_code' => ['nullable', 'string', 'max:10'],
             'featured' => ['nullable', 'boolean'],
-            'banner' => ['nullable', 'image', 'max:20480'],
+            'banner' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:20480'],
             'attachments.*.label' => ['nullable', 'string', 'max:255'],
-            'attachments.*.file_url' => ['nullable', 'url'],
-            'upload_files.*' => ['nullable', 'file', 'max:51200'],
+            'attachments.*.file_url' => ['nullable', new SafeUrl(true)],
+            'upload_files.*' => ['nullable', 'file', 'max:51200', 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,csv,zip,jpg,jpeg,png,webp,gif,mp4'],
             'department_id' => [$canViewAll ? 'nullable' : 'prohibited', 'exists:departments,id'],
         ]);
+    }
+
+    protected function normalizePublicationFields(array $data, ?NewsItem $news = null): array
+    {
+        if (($data['status'] ?? null) === 'published' && empty($data['published_at'])) {
+            $data['published_at'] = $news?->published_at ?? now();
+        }
+
+        return $data;
     }
 
     protected function resolveDepartment(Request $request): ?int
@@ -185,9 +202,18 @@ class AdminNewsController extends Controller
     protected function syncAttachments(NewsItem $item, Request $request): void
     {
         $links = $request->input('attachments', []);
+        foreach ($item->attachments as $attachment) {
+            if ($attachment->file_path) {
+                Storage::disk('public')->delete($attachment->file_path);
+            }
+        }
         $item->attachments()->delete();
+
         foreach ($links as $att) {
-            if (empty($att['file_url'])) continue;
+            if (empty($att['file_url'])) {
+                continue;
+            }
+
             $item->attachments()->create([
                 'label' => $att['label'] ?? null,
                 'file_url' => $att['file_url'],

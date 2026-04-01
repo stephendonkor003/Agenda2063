@@ -120,12 +120,12 @@
     <section class="content-section flagship-section">
         <div class="section-header">
             <h2>Flagship Projects</h2>
-            <a href="#" class="see-all">See All</a>
+            <a href="{{ route('flagship-projects') }}" class="see-all">See All</a>
         </div>
         <div class="flagship-grid">
             @foreach($flagships as $flag)
-            <div class="flagship-card">
-                <div class="card-bg" style="background-image: url('{{ $flag['image'] ?? '' }}');"></div>
+            <div class="flagship-card" style="--flagship-delay: {{ number_format($loop->index * 0.12, 2, '.', '') }}s;">
+                <div class="card-bg" style="background-image: url('{{ $flag['image'] ?: $placeholder }}');"></div>
                 <div class="card-content">
                     <div class="card-text-wrapper">
                         <h3>{{ $flag['title'] }}</h3>

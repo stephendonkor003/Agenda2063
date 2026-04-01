@@ -1569,3 +1569,216 @@
 .tag-pill{background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;}
 .tag-link{font-weight:700;color:#0ea5e9;text-decoration:none;font-size:13px;}
 
+.programme-main-layout {
+  align-items: start;
+}
+
+.programme-html-block {
+  background: linear-gradient(180deg, #ffffff 0%, #fbf7f2 100%);
+  border: 1px solid rgba(149, 31, 54, 0.08);
+  border-radius: 18px;
+  padding: 34px 36px;
+  box-shadow: 0 18px 40px rgba(90, 35, 47, 0.08);
+}
+
+.programme-html-copy {
+  color: #5b5560;
+  font-size: 15px;
+  line-height: 1.85;
+}
+
+.programme-html-copy > *:first-child {
+  margin-top: 0;
+}
+
+.programme-html-copy > *:last-child {
+  margin-bottom: 0;
+}
+
+.programme-html-copy h3,
+.programme-html-copy h4 {
+  color: #822b39;
+  font-weight: 700;
+  margin: 26px 0 12px;
+}
+
+.programme-html-copy p,
+.programme-html-copy ul,
+.programme-html-copy ol {
+  margin-bottom: 16px;
+}
+
+.programme-html-copy ul,
+.programme-html-copy ol {
+  padding-left: 20px;
+}
+
+.programme-html-copy li + li {
+  margin-top: 8px;
+}
+
+.programme-html-copy a {
+  color: #951f36;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.programme-sidebar {
+  position: sticky;
+  top: 20px;
+  display: grid;
+  gap: 20px;
+}
+
+.programme-apply-card,
+.programme-meta-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 28px;
+  box-shadow: 0 18px 42px rgba(64, 24, 33, 0.1);
+  border: 1px solid rgba(149, 31, 54, 0.08);
+}
+
+.programme-apply-card {
+  background: linear-gradient(160deg, #822b39 0%, #951f36 55%, #b63b4f 100%);
+  color: #fff;
+  overflow: hidden;
+  position: relative;
+}
+
+.programme-apply-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at top right, rgba(245, 193, 67, 0.26) 0, transparent 44%),
+    radial-gradient(circle at bottom left, rgba(255, 255, 255, 0.12) 0, transparent 40%);
+  pointer-events: none;
+}
+
+.programme-apply-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.programme-card-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #f7d36a;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.programme-apply-card h3,
+.programme-meta-card h3 {
+  margin: 0 0 12px;
+  font-size: 28px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.programme-apply-card p {
+  margin: 0 0 16px;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.75;
+}
+
+.programme-apply-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 15px 18px;
+  border-radius: 14px;
+  background: #f5c143;
+  color: #311217;
+  font-size: 15px;
+  font-weight: 800;
+  box-shadow: 0 18px 35px rgba(30, 10, 14, 0.2);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.programme-apply-btn:hover {
+  background: #ffd466;
+  transform: translateY(-3px);
+  box-shadow: 0 24px 42px rgba(30, 10, 14, 0.28);
+  text-decoration: none;
+}
+
+.programme-apply-pending {
+  border-radius: 14px;
+  padding: 15px 18px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px dashed rgba(255, 255, 255, 0.32);
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 600;
+}
+
+.programme-apply-note {
+  margin-top: 14px !important;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.78) !important;
+}
+
+.programme-meta-card {
+  background: linear-gradient(180deg, #ffffff 0%, #f8f1eb 100%);
+}
+
+.programme-meta-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.programme-meta-list li {
+  display: grid;
+  gap: 4px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(149, 31, 54, 0.12);
+}
+
+.programme-meta-list li:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.programme-meta-list strong {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #951f36;
+}
+
+.programme-meta-list span {
+  color: #4c4450;
+  line-height: 1.6;
+}
+
+@media (max-width: 968px) {
+  .programme-sidebar {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .programme-html-block,
+  .programme-apply-card,
+  .programme-meta-card {
+    padding: 24px 20px;
+  }
+
+  .programme-apply-card h3 {
+    font-size: 24px;
+  }
+}

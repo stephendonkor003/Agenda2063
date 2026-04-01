@@ -118,84 +118,109 @@
 
 <!-- Footer -->
 @php
-    use Illuminate\Support\Str;
-    $groups = [
-        'about' => 'About',
-        'resources' => 'Resources',
-        'legal' => 'Legal',
-        'social' => 'Social',
-    ];
     $footerLinks = $footerLinks ?? collect();
-    $iconMap = [
-        'facebook' => 'facebook-f',
-        'twitter' => 'twitter',
-        'youtube' => 'youtube',
-        'instagram' => 'instagram',
-        'linkedin' => 'linkedin',
+    $legalLinks = $footerLinks->get('legal', collect());
+    $footerColumns = [
+        [
+            'title' => 'AU Resources',
+            'items' => [
+                ['label' => 'AU Website', 'url' => 'https://au.int/en'],
+                ['label' => 'AU Handbook', 'url' => 'https://au.int/en/handbook'],
+                ['label' => 'AU Bids & Procurement', 'url' => 'https://au.int/en/bids'],
+                ['label' => 'AU Library', 'url' => 'https://library.au.int'],
+                ['label' => 'AU Careers', 'url' => 'https://jobs.au.int/'],
+            ],
+        ],
+        [
+            'title' => 'Programmes & Fellowships',
+            'items' => [
+                ['label' => 'AU Media Fellowship', 'url' => 'https://au.int/en/aumf'],
+                ['label' => 'AU Tech Fellowship', 'url' => 'https://auinnovationfellowship.com/'],
+                ['label' => 'AU Internship Programme', 'url' => 'https://au.int/en/internship/apply'],
+                ['label' => 'AU Youth Volunteer Corps', 'url' => 'https://go.au.int/en/youth-volunteer-corps'],
+            ],
+        ],
+        [
+            'title' => 'AU Partnerships',
+            'items' => [
+                ['label' => 'AUPReMIS', 'url' => 'https://au.int/en/bids/20231027/premis-terms-reference-tor-consultancy-firm-partners-and-resource-mobilization'],
+                ['label' => 'AU Foundation', 'url' => 'https://au.int/en/auf'],
+                ['label' => 'Resource Mobilization', 'url' => 'https://au.int/en/auc/priorities/resource-mobilization'],
+                ['label' => 'AUDA-NEPAD', 'url' => 'https://au.int/en/nepad'],
+            ],
+        ],
+        [
+            'title' => 'AU Social Media Engagements',
+            'items' => [
+                ['label' => 'Facebook', 'url' => 'https://www.facebook.com/AfricanUnionCommission', 'icon' => 'fa-facebook-f'],
+                ['label' => 'X (Twitter)', 'url' => 'https://twitter.com/_AfricanUnion', 'icon' => 'x-twitter'],
+                ['label' => 'YouTube', 'url' => 'https://www.youtube.com/AUCommission', 'icon' => 'fa-youtube'],
+                ['label' => 'Flickr', 'url' => 'https://www.flickr.com/photos/africanunioncommission/', 'icon' => 'fa-flickr'],
+            ],
+        ],
     ];
+    $iosStoreUrl = config('app.mobile_app.ios_store_url');
+    $androidStoreUrl = config('app.mobile_app.android_store_url');
 @endphp
 <footer class="main-footer">
     <div class="footer-content">
-        @forelse($groups as $section => $heading)
-            @php $items = $footerLinks->get($section, collect()); @endphp
-            @if($items->count())
-                <div class="footer-column">
-                    <h4>{{ $heading }}</h4>
-                    <ul>
-                        @foreach($items as $item)
-                            <li>
-                                <a href="{{ $item->url }}"
-                                   target="{{ $item->open_in_new_tab ? '_blank' : '_self' }}"
-                                   rel="{{ $item->open_in_new_tab ? 'noopener' : '' }}">
-                                    {{ $item->label }}
-                                </a>
-                            </li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-        @empty
-        @endforelse
-
-        @if($footerLinks->isEmpty())
-            <!-- Fallback content when no footer links are configured -->
+        @foreach($footerColumns as $column)
             <div class="footer-column">
-                <h4>About Agenda 2063</h4>
-                <p>AGENDA 2063 is Africa's blueprint and master plan for transforming Africa into the global powerhouse of the future.</p>
-            </div>
-            <div class="footer-column">
-                <h4>Quick Links</h4>
-                <ul>
-                    <li><a href="{{ url('/') }}">Home</a></li>
-                    <li><a href="{{ url('/about') }}">About Us</a></li>
-                    <li><a href="#">Resources</a></li>
-                    <li><a href="#">Contact</a></li>
+                <h4>{{ $column['title'] }}</h4>
+                <ul class="footer-menu">
+                    @foreach($column['items'] as $item)
+                        <li>
+                            <a href="{{ $item['url'] }}" target="_blank" rel="noopener">
+                                @if(! empty($item['icon']))
+                                    <span class="footer-link-icon">
+                                        @if($item['icon'] === 'x-twitter')
+                                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                                            </svg>
+                                        @else
+                                            <i class="fa-brands {{ $item['icon'] }}"></i>
+                                        @endif
+                                    </span>
+                                @endif
+                                <span>{{ $item['label'] }}</span>
+                            </a>
+                        </li>
+                    @endforeach
                 </ul>
             </div>
-        @endif
+        @endforeach
+    </div>
+
+    <div class="footer-app-banner">
+        <div class="footer-app-copy">
+            <h4>Get the Mobile App</h4>
+            <p>Mobile App version is available on iOS and Android stores. Tap a store below to go straight to the download page.</p>
+        </div>
+        <div class="footer-store-links">
+            <a class="footer-store-btn ios" href="{{ $iosStoreUrl }}" target="_blank" rel="noopener">
+                <span class="footer-store-icon">
+                    <i class="fa-brands fa-app-store-ios"></i>
+                </span>
+                <span class="footer-store-copy">
+                    <small>Available on</small>
+                    <strong>App Store</strong>
+                </span>
+            </a>
+            <a class="footer-store-btn android" href="{{ $androidStoreUrl }}" target="_blank" rel="noopener">
+                <span class="footer-store-icon">
+                    <i class="fa-brands fa-google-play"></i>
+                </span>
+                <span class="footer-store-copy">
+                    <small>Get it on</small>
+                    <strong>Google Play</strong>
+                </span>
+            </a>
+        </div>
     </div>
 
     <div class="footer-bottom">
-        <div class="footer-social">
-            <h4>Follow Us</h4>
-            <div class="social-icons">
-                @php $social = $footerLinks->get('social', collect()); @endphp
-                @forelse($social as $link)
-                    @php $key = Str::slug($link->label); $icon = $iconMap[$key] ?? 'link'; @endphp
-                    <a href="{{ $link->url }}" target="{{ $link->open_in_new_tab ? '_blank' : '_self' }}" rel="{{ $link->open_in_new_tab ? 'noopener' : '' }}">
-                        <i class="fa-brands fa-{{ $icon }}"></i>
-                    </a>
-                @empty
-                    <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#"><i class="fa-brands fa-twitter"></i></a>
-                    <a href="#"><i class="fa-brands fa-youtube"></i></a>
-                    <a href="#"><i class="fa-brands fa-instagram"></i></a>
-                @endforelse
-            </div>
-        </div>
         <div class="footer-links">
-            @php $legal = $footerLinks->get('legal', collect()); @endphp
-            @forelse($legal as $link)
+            @forelse($legalLinks as $link)
                 <a href="{{ $link->url }}" target="{{ $link->open_in_new_tab ? '_blank' : '_self' }}" rel="{{ $link->open_in_new_tab ? 'noopener' : '' }}">{{ $link->label }}</a>
             @empty
                 <a href="#">Contact Us</a>

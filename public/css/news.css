@@ -717,6 +717,12 @@
   min-width: 300px;
 }
 
+.newsletter-actions {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
 .newsletter-form input {
   flex: 1;
   padding: 16px 20px;
@@ -758,6 +764,16 @@
 .subscribe-btn:hover {
   background: #e0a800;
   transform: translateY(-2px);
+}
+
+.subscribe-btn.secondary {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+}
+
+.subscribe-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* Responsive Design */
@@ -833,6 +849,10 @@
   .newsletter-form {
     flex-direction: column;
     width: 100%;
+  }
+
+  .newsletter-actions {
+    justify-content: center;
   }
 
   .subscribe-btn {

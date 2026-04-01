@@ -10,15 +10,16 @@ class QuizController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'email'           => 'required|email',
+            'email'           => 'required|email:rfc|max:255',
             'name'            => 'nullable|string|max:255',
-            'country'         => 'nullable|string|max:255',
+            'country'         => 'nullable|string|max:120',
             'quiz_type'       => 'nullable|string|in:education,footer',
             'slide_number'    => 'required|integer|min:1|max:20',
             'question'        => 'required|string|max:500',
             'selected_answer' => 'required|string|max:255',
             'is_correct'      => 'required|boolean',
         ]);
+        $validated['email'] = strtolower($validated['email']);
 
         QuizResponse::create($validated);
 

@@ -29,13 +29,17 @@ Route::get('/knowledge/{slug}', [\App\Http\Controllers\KnowledgeDownloadControll
 Route::get('/flagship-projects', [PublicController::class, 'flagshipProjects'])->name('flagship-projects');
 Route::get('/continental-frameworks', [PublicController::class, 'continentalFrameworks'])->name('continental-frameworks');
 Route::get('/locale/{locale}', function (string $locale) {
+    $locale = strtolower($locale);
+    abort_unless(in_array($locale, config('app.supported_locales', ['en', 'fr', 'pt', 'ar']), true), 404);
+
     session(['app_locale' => $locale]);
     app()->setLocale($locale);
+
     return back();
 })->name('locale.switch');
 
-Route::post('/campaign/join', [CampaignController::class, 'store'])->name('campaign.store');
-Route::post('/quiz/answer', [QuizController::class, 'store'])->name('quiz.store');
+Route::post('/campaign/join', [CampaignController::class, 'store'])->middleware('throttle:15,1')->name('campaign.store');
+Route::post('/quiz/answer', [QuizController::class, 'store'])->middleware('throttle:30,1')->name('quiz.store');
 
 // Auth Routes
 Route::get('/login', function (Request $request) {
@@ -51,6 +55,7 @@ Route::post('/login', function (Request $request) {
         'email' => ['required', 'email'],
         'password' => ['required'],
     ]);
+    $credentials['email'] = strtolower($credentials['email']);
 
     $maxAttempts = (int) config('auth.login_max_attempts', 5);
     $lockoutMinutes = (int) config('auth.lockout_minutes', 15);
@@ -111,6 +116,9 @@ Route::post('/login', function (Request $request) {
     }
 
     Auth::logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
     return back()->withErrors([
         'email' => 'You do not have admin access.',
     ])->onlyInput('email');
@@ -158,6 +166,9 @@ Route::post('/login/2fa', function (Request $request) {
     }
 
     Auth::logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
     return redirect()->route('login')->withErrors(['email' => 'You do not have admin access.']);
 })->middleware('throttle:10,1')->name('login.2fa.verify');
 
@@ -221,6 +232,7 @@ Route::prefix('admin')
         Route::post('/campaign-subscribers/broadcast', [\App\Http\Controllers\AdminCampaignSubscribersController::class, 'broadcast'])->name('campaign-subscribers.broadcast');
         Route::get('/public-visibility/navigation', [\App\Http\Controllers\AdminPublicVisibilityController::class, 'navigation'])->name('public.nav');
         Route::post('/public-visibility/navigation', [\App\Http\Controllers\AdminPublicVisibilityController::class, 'storeNav'])->name('public.nav.store');
+        Route::get('/public-visibility/navigation/{link}/edit', [\App\Http\Controllers\AdminPublicVisibilityController::class, 'editNav'])->name('public.nav.edit');
         Route::put('/public-visibility/navigation/{link}', [\App\Http\Controllers\AdminPublicVisibilityController::class, 'updateNav'])->name('public.nav.update');
         Route::delete('/public-visibility/navigation/{link}', [\App\Http\Controllers\AdminPublicVisibilityController::class, 'destroyNav'])->name('public.nav.destroy');
         Route::post('/public-visibility/navigation/reorder', [\App\Http\Controllers\AdminPublicVisibilityController::class, 'reorderNav'])->name('public.nav.reorder');
@@ -233,6 +245,9 @@ Route::prefix('admin')
         Route::post('/public-visibility/sliders/reorder', [\App\Http\Controllers\AdminPublicVisibilityController::class, 'reorderSliders'])->name('public.sliders.reorder');
         Route::get('/public-visibility/footer', [\App\Http\Controllers\AdminPublicVisibilityController::class, 'footers'])->name('public.footer');
         Route::post('/public-visibility/footer', [\App\Http\Controllers\AdminPublicVisibilityController::class, 'storeFooter'])->name('public.footer.store');
+        Route::get('/public-visibility/footer/{link}/edit', [\App\Http\Controllers\AdminPublicVisibilityController::class, 'editFooter'])->name('public.footer.edit');
+        Route::get('/public-visibility/footer/{link}/design', [\App\Http\Controllers\AdminPublicVisibilityController::class, 'designFooter'])->name('public.footer.design');
+        Route::post('/public-visibility/footer/{link}/design', [\App\Http\Controllers\AdminPublicVisibilityController::class, 'saveDesignFooter'])->name('public.footer.design.save');
         Route::put('/public-visibility/footer/{link}', [\App\Http\Controllers\AdminPublicVisibilityController::class, 'updateFooter'])->name('public.footer.update');
         Route::delete('/public-visibility/footer/{link}', [\App\Http\Controllers\AdminPublicVisibilityController::class, 'destroyFooter'])->name('public.footer.destroy');
         Route::post('/public-visibility/footer/reorder', [\App\Http\Controllers\AdminPublicVisibilityController::class, 'reorderFooter'])->name('public.footer.reorder');
@@ -266,3 +281,5 @@ Route::prefix('admin')
         Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
     });
+
+Route::fallback([PublicController::class, 'navigationPage'])->name('navigation.dynamic');

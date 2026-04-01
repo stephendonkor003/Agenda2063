@@ -24,6 +24,8 @@
 
     @include('partials.education-overlay')
 
+    @include('partials.external-link-modal')
+
     @yield('content')
 
     @include('partials.footer')

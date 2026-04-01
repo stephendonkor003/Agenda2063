@@ -39,16 +39,28 @@ class AppServiceProvider extends ServiceProvider
 
         // Share navigation / footer links with all public views (guard against missing tables during fresh installs)
         if (Schema::hasTable('navigation_links')) {
-            view()->composer('partials.navigation', function ($view) {
-                $view->with(
-                    'navLinks',
-                    NavigationLink::query()
-                        ->where('is_active', true)
-                        ->where('locale', app()->getLocale())
-                        ->where('location', 'header')
-                        ->orderBy('position')
-                        ->get()
-                );
+            $hasParentLinks = Schema::hasColumn('navigation_links', 'parent_id');
+
+            view()->composer('partials.navigation', function ($view) use ($hasParentLinks) {
+                $query = NavigationLink::query()
+                    ->where('is_active', true)
+                    ->where('locale', app()->getLocale())
+                    ->where('location', 'header')
+                    ->orderBy('position');
+
+                if ($hasParentLinks) {
+                    $query
+                        ->whereNull('parent_id')
+                        ->with(['children' => function ($childQuery) {
+                            $childQuery
+                                ->where('is_active', true)
+                                ->where('locale', app()->getLocale())
+                                ->where('location', 'header')
+                                ->orderBy('position');
+                        }]);
+                }
+
+                $view->with('navLinks', $query->get());
             });
         } else {
             view()->composer('partials.navigation', fn ($view) => $view->with('navLinks', collect()));

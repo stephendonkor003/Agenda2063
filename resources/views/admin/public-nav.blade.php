@@ -26,20 +26,31 @@
                 </div>
                 <div class="settings-field" style="min-width:320px;">
                     <label>URL</label>
-                    <input type="text" name="url" class="settings-input" placeholder="/about or https://" required>
+                    <input type="text" name="url" class="settings-input" placeholder="/about, https:// or #" required>
                 </div>
                 <div class="settings-field" style="min-width:160px;">
                     <label>Location</label>
-                    <select name="location" class="settings-select">
+                    <select name="location" class="settings-select" id="navLocationSelect">
                         <option value="header">Header</option>
                         <option value="footer">Footer</option>
                     </select>
                 </div>
                 <div class="settings-field" style="min-width:140px;">
                     <label>Locale</label>
-                    <select name="locale" class="settings-select">
+                    <select name="locale" class="settings-select" id="navLocaleSelect">
                         @foreach(['en'=>'English','fr'=>'Français','ar'=>'Arabic','pt'=>'Português'] as $code => $label)
                             <option value="{{ $code }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="settings-field" style="min-width:220px;">
+                    <label>Parent Link</label>
+                    <select name="parent_id" class="settings-select" id="navParentSelect">
+                        <option value="">Top-level tab</option>
+                        @foreach($parentOptions as $parentOption)
+                            <option value="{{ $parentOption->id }}" data-locale="{{ $parentOption->locale }}">
+                                {{ strtoupper($parentOption->locale) }} · {{ $parentOption->label }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
@@ -57,6 +68,7 @@
                 </div>
                 <button class="btn-primary-admin" type="submit"><i class="fa-solid fa-save"></i> Save</button>
             </form>
+            <p class="text-muted" style="margin-top:10px;">Create a parent tab like <strong>Programmes</strong> with URL <code>#</code>, then add fellowship links under it by choosing that parent. Programme child links should use an internal path such as <code>/programmes/au-media-fellowship</code>; put the external application platform under <strong>Design Page &gt; CTA URL</strong>.</p>
         </div>
     </div>
 
@@ -67,12 +79,17 @@
                 @csrf
                 <input type="hidden" name="order" id="navOrderInput">
                 <table class="admin-table compact" id="navTable">
-                    <thead><tr><th>#</th><th>Label</th><th>URL</th><th>Locale</th><th>Location</th><th>Active</th><th>New Tab</th><th>Position</th><th>Actions</th></tr></thead>
+                    <thead><tr><th>#</th><th>Label</th><th>Parent</th><th>URL</th><th>Locale</th><th>Location</th><th>Active</th><th>New Tab</th><th>Position</th><th>Actions</th></tr></thead>
                     <tbody>
                     @foreach($links as $link)
                         <tr data-id="{{ $link->id }}">
                             <td class="drag-handle"><i class="fa-solid fa-grip-vertical"></i></td>
-                        <td><a href="{{ route('admin.public.nav.design', $link) }}">{{ $link->label }}</a></td>
+                            <td>
+                                <a href="{{ route('admin.public.nav.edit', $link) }}">
+                                    {!! $link->parent_id ? '&nbsp;&nbsp;&nbsp;&boxur;&nbsp;' : '' !!}{{ $link->label }}
+                                </a>
+                            </td>
+                            <td>{{ $link->parent?->label ?? 'Top level' }}</td>
                             <td>{{ $link->url }}</td>
                             <td>{{ strtoupper($link->locale) }}</td>
                             <td>{{ ucfirst($link->location) }}</td>
@@ -80,17 +97,8 @@
                             <td>{{ $link->open_in_new_tab ? 'Yes' : 'No' }}</td>
                             <td>{{ $link->position }}</td>
                             <td>
-                                <form method="POST" action="{{ route('admin.public.nav.update', $link) }}" style="display:inline-block;">
-                                    @csrf @method('PUT')
-                                    <input type="hidden" name="label" value="{{ $link->label }}">
-                                    <input type="hidden" name="url" value="{{ $link->url }}">
-                                    <input type="hidden" name="location" value="{{ $link->location }}">
-                                    <input type="hidden" name="position" value="{{ $link->position }}">
-                                    <input type="hidden" name="open_in_new_tab" value="{{ $link->open_in_new_tab }}">
-                                    <input type="hidden" name="is_active" value="{{ $link->is_active }}">
-                                    <input type="hidden" name="locale" value="{{ $link->locale }}">
-                                    <button class="action-icon-btn" title="Re-save"><i class="fa-solid fa-pen"></i></button>
-                                </form>
+                                <a href="{{ route('admin.public.nav.edit', $link) }}" class="action-icon-btn" title="Edit link"><i class="fa-solid fa-pen"></i></a>
+                                <a href="{{ route('admin.public.nav.design', $link) }}" class="action-icon-btn" title="Design page"><i class="fa-solid fa-palette"></i></a>
                                 <form method="POST" action="{{ route('admin.public.nav.destroy', $link) }}" style="display:inline-block;" onsubmit="return confirm('Delete {{ $link->label }}?')">
                                     @csrf @method('DELETE')
                                     <button class="action-icon-btn danger" title="Delete"><i class="fa-solid fa-trash"></i></button>
@@ -111,6 +119,41 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const tbody = document.querySelector('#navTable tbody');
+    const locationSelect = document.getElementById('navLocationSelect');
+    const localeSelect = document.getElementById('navLocaleSelect');
+    const parentSelect = document.getElementById('navParentSelect');
+
+    function syncParentOptions() {
+        if (!locationSelect || !localeSelect || !parentSelect) return;
+
+        const isHeader = locationSelect.value === 'header';
+        const activeLocale = localeSelect.value;
+
+        parentSelect.disabled = !isHeader;
+
+        Array.from(parentSelect.options).forEach(option => {
+            if (!option.value) {
+                option.hidden = false;
+                return;
+            }
+
+            const matchesLocale = option.dataset.locale === activeLocale;
+            option.hidden = !isHeader || !matchesLocale;
+
+            if (option.hidden && option.selected) {
+                parentSelect.value = '';
+            }
+        });
+
+        if (!isHeader) {
+            parentSelect.value = '';
+        }
+    }
+
+    syncParentOptions();
+    locationSelect?.addEventListener('change', syncParentOptions);
+    localeSelect?.addEventListener('change', syncParentOptions);
+
     if (!tbody) return;
     let dragSrc;
     tbody.querySelectorAll('tr').forEach(row => {

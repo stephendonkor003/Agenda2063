@@ -76,6 +76,8 @@
                 <div class="settings-field" style="flex:1;">
                     <label>{{ $type === 'event' ? 'Starts At' : 'Published At' }}</label>
                     <input type="datetime-local" name="published_at" class="settings-input" value="{{ old('published_at', optional($item->published_at)->format('Y-m-d\TH:i')) }}">
+                    <p class="settings-hint">Required for scheduled items. Published items default to the current time if left blank.</p>
+                    @error('published_at')<span class="field-error-text">{{ $message }}</span>@enderror
                 </div>
                 <div class="settings-field" style="flex:1; {{ $type === 'event' ? '' : 'display:none;' }}" id="eventFields">
                     <label>Ends At</label>

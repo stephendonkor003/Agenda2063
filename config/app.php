@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    'name' => env('APP_NAME', 'Agenda2063'),
 
     /*
     |--------------------------------------------------------------------------
@@ -65,7 +65,7 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => env('APP_TIMEZONE', 'UTC'),
 
     /*
     |--------------------------------------------------------------------------
@@ -83,6 +83,16 @@ return [
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
+
+    'supported_locales' => array_values(array_filter(array_map(
+        'trim',
+        explode(',', (string) env('APP_SUPPORTED_LOCALES', 'en,fr,pt,ar'))
+    ))),
+
+    'mobile_app' => [
+        'ios_store_url' => env('APP_IOS_STORE_URL', 'https://www.apple.com/app-store/'),
+        'android_store_url' => env('APP_ANDROID_STORE_URL', 'https://play.google.com/store/apps'),
+    ],
 
     /*
     |--------------------------------------------------------------------------

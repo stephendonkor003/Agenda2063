@@ -24,9 +24,9 @@
 
     <!-- Page Hero Banner -->
     <section class="page-hero" id="pageHero">
-        <div class="page-hero-bg active" style="background-image: url('{{ $featuredCard['image'] ?? asset('images/flagships/placeholder.svg') }}');"></div>
-        <div class="page-hero-bg" style="background-image: url('{{ asset('images/flagships/placeholder.svg') }}');"></div>
-        <div class="page-hero-bg" style="background-image: url('{{ asset('images/flagships/placeholder.svg') }}');"></div>
+        @foreach($heroImages as $image)
+            <div class="page-hero-bg {{ $loop->first ? 'active' : '' }}" style="background-image: url('{{ $image }}');"></div>
+        @endforeach
         <div class="page-hero-content">
             <span class="hero-label">Stay Informed</span>
             <h1>News & Events</h1>
@@ -46,17 +46,14 @@
                         <button class="filter-btn active" data-category="all">
                             <i class="fa-solid fa-globe"></i> All
                         </button>
-                        <button class="filter-btn" data-category="news">
-                            <i class="fa-solid fa-newspaper"></i> News
+                        <button class="filter-btn" data-category="article">
+                            <i class="fa-solid fa-newspaper"></i> Articles
                         </button>
-                        <button class="filter-btn" data-category="events">
+                        <button class="filter-btn" data-category="event">
                             <i class="fa-solid fa-calendar"></i> Events
                         </button>
                         <button class="filter-btn" data-category="press">
                             <i class="fa-solid fa-bullhorn"></i> Press Releases
-                        </button>
-                        <button class="filter-btn" data-category="media">
-                            <i class="fa-solid fa-photo-film"></i> Media
                         </button>
                     </div>
                 </div>
@@ -86,9 +83,9 @@
                         </div>
                         <h3>{{ $featuredCard['title'] }}</h3>
                         <p>{{ $featuredCard['summary'] }}</p>
-                        <button class="read-full-btn" onclick="window.location='{{ $featuredCard['url'] }}'">
+                        <a class="read-full-btn" href="{{ $featuredCard['url'] }}">
                             <i class="fa-solid fa-arrow-right"></i> Read Full Story
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -120,28 +117,22 @@
                 @endforelse
             </div>
 
-            <!-- Load More Button -->
-            <div class="load-more-section">
-                <button class="load-more-btn">
-                    <i class="fa-solid fa-spinner"></i> Load More Stories
-                </button>
-            </div>
-
-            <!-- Newsletter Subscription -->
             <div class="newsletter-section">
                 <div class="newsletter-content">
                     <div class="newsletter-icon">
-                        <i class="fa-solid fa-envelope"></i>
+                        <i class="fa-solid fa-globe-africa"></i>
                     </div>
                     <div class="newsletter-text">
-                        <h3>Stay Updated</h3>
-                        <p>Subscribe to our newsletter and never miss important updates on Agenda 2063</p>
+                        <h3>Explore Official AU Channels</h3>
+                        <p>Continue to the African Union newsroom and events pages for more official releases, notices, and event updates.</p>
                     </div>
-                    <div class="newsletter-form">
-                        <input type="email" placeholder="Enter your email address">
-                        <button class="subscribe-btn">
-                            <i class="fa-solid fa-paper-plane"></i> Subscribe
-                        </button>
+                    <div class="newsletter-actions">
+                        <a class="subscribe-btn" href="https://au.int/en/pressreleases" target="_blank" rel="noopener">
+                            <i class="fa-solid fa-bullhorn"></i> Press Releases
+                        </a>
+                        <a class="subscribe-btn secondary" href="https://au.int/en/newsevents" target="_blank" rel="noopener">
+                            <i class="fa-solid fa-calendar-days"></i> Events
+                        </a>
                     </div>
                 </div>
             </div>

@@ -12,9 +12,9 @@ class CampaignController extends Controller
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name'  => 'required|string|max:255',
-            'email'      => 'required|email|unique:campaign_signups,email',
-            'country'    => 'required|string|max:255',
-            'interest'   => 'nullable|string|max:255',
+            'email'      => 'required|email:rfc|max:255|unique:campaign_signups,email',
+            'country'    => 'required|string|max:120',
+            'interest'   => 'nullable|string|max:120',
             'newsletter' => 'nullable',
             'terms'      => 'accepted',
         ]);
@@ -22,7 +22,7 @@ class CampaignController extends Controller
         CampaignSignup::create([
             'first_name' => $validated['first_name'],
             'last_name'  => $validated['last_name'],
-            'email'      => $validated['email'],
+            'email'      => strtolower($validated['email']),
             'country'    => $validated['country'],
             'interest'   => $validated['interest'] ?? null,
             'newsletter' => $request->has('newsletter'),

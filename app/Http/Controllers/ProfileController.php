@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class ProfileController extends Controller
 {
@@ -23,7 +24,7 @@ class ProfileController extends Controller
             'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'two_factor_enabled' => ['sometimes', 'boolean'],
         ]);
-
+        $data['email'] = strtolower($data['email']);
         $data['two_factor_enabled'] = $request->boolean('two_factor_enabled');
 
         $user->update($data);
@@ -37,7 +38,7 @@ class ProfileController extends Controller
 
         $data = $request->validate([
             'current_password' => ['required', 'current_password'],
-            'password' => ['required', 'confirmed', 'min:8'],
+            'password' => ['required', 'confirmed', Password::min(12)->mixedCase()->numbers()->symbols()],
         ]);
 
         $user->update([

@@ -6,6 +6,7 @@ use App\Models\Department;
 use App\Models\FlagshipProject;
 use App\Models\FlagshipUpdate;
 use App\Models\AuditLog;
+use App\Rules\SafeUrl;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -32,6 +33,7 @@ class AdminFlagshipProjectsController extends Controller
     public function storeProject(Request $request)
     {
         $data = $this->validateProject($request);
+
         if ($request->file('banner')) {
             $path = $request->file('banner')->store('flagships/banners', 'public');
             $data['image_url'] = Storage::url($path);
@@ -47,7 +49,9 @@ class AdminFlagshipProjectsController extends Controller
     {
         $this->authorizeProject($request, $project);
         $data = $this->validateProject($request, $project->id);
+
         if ($request->file('banner')) {
+            $this->deletePublicUrl($project->image_url);
             $path = $request->file('banner')->store('flagships/banners', 'public');
             $data['image_url'] = Storage::url($path);
         }
@@ -60,6 +64,14 @@ class AdminFlagshipProjectsController extends Controller
     public function destroyProject(Request $request, FlagshipProject $project)
     {
         $this->authorizeProject($request, $project);
+        $this->deletePublicUrl($project->image_url);
+
+        foreach ($project->updates as $update) {
+            foreach ($update->files as $file) {
+                $this->deletePublicUrl($file->file_url);
+            }
+        }
+
         $project->delete();
         return back()->with('status', 'Flagship project deleted.');
     }
@@ -165,6 +177,11 @@ class AdminFlagshipProjectsController extends Controller
             abort(404, 'Associated project not found.');
         }
         $this->authorizeProject($request, $project);
+
+        foreach ($update->files as $file) {
+            $this->deletePublicUrl($file->file_url);
+        }
+
         $update->delete();
         return back()->with('status', 'Update deleted.');
     }
@@ -188,8 +205,7 @@ class AdminFlagshipProjectsController extends Controller
             'progress' => ['required', 'numeric', 'min:0', 'max:100'],
             'summary' => ['nullable', 'string'],
             'department_id' => [$canViewAll ? 'required' : 'nullable', 'exists:departments,id'],
-            // allow up to 20MB images for banners
-            'banner' => ['nullable', 'image', 'max:20480'],
+            'banner' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:20480'],
         ]);
         $validated['department_id'] = $canViewAll ? $validated['department_id'] : $user->department_id;
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['title']);
@@ -205,10 +221,10 @@ class AdminFlagshipProjectsController extends Controller
             'body' => ['nullable', 'string'],
             'published_at' => ['nullable', 'date'],
             'files' => ['array'],
-            'files.*.file_url' => ['nullable', 'url', 'max:500'],
+            'files.*.file_url' => ['nullable', new SafeUrl(true), 'max:500'],
             'files.*.label' => ['nullable', 'string', 'max:255'],
             'upload_files' => ['array'],
-            'upload_files.*' => ['file', 'max:10240'],
+            'upload_files.*' => ['file', 'max:10240', 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,csv,zip,jpg,jpeg,png,webp,gif,mp4'],
             'flagship_project_id' => ['sometimes','exists:flagship_projects,id'],
         ]);
     }
@@ -218,6 +234,7 @@ class AdminFlagshipProjectsController extends Controller
         $files = collect($request->input('files', []))
             ->filter(fn ($f) => !empty($f['file_url']))
             ->values();
+        $retainedUrls = $files->pluck('file_url')->filter()->values();
 
         $uploads = collect($request->file('upload_files', []))
             ->filter()
@@ -228,6 +245,12 @@ class AdminFlagshipProjectsController extends Controller
                     'label' => $file->getClientOriginalName(),
                 ];
             });
+
+        foreach ($update->files as $existingFile) {
+            if (! $retainedUrls->contains($existingFile->file_url)) {
+                $this->deletePublicUrl($existingFile->file_url);
+            }
+        }
 
         $update->files()->delete();
         foreach ($files->concat($uploads) as $file) {
@@ -249,6 +272,19 @@ class AdminFlagshipProjectsController extends Controller
                 $url,
                 $actor->name ?? 'System'
             ));
+        }
+    }
+
+    protected function deletePublicUrl(?string $url): void
+    {
+        if (! $url || ! str_starts_with($url, '/storage/')) {
+            return;
+        }
+
+        $path = ltrim(Str::after($url, '/storage/'), '/');
+
+        if ($path !== '' && Storage::disk('public')->exists($path)) {
+            Storage::disk('public')->delete($path);
         }
     }
 }

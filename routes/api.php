@@ -8,4 +8,4 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->get('/user', function (Req
 });
 
 Route::post('/analytics', [\App\Http\Controllers\Api\AnalyticsIngestController::class, 'store'])
-    ->middleware('throttle:60,1');
+    ->middleware('throttle:30,1');

@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FooterLink;
+use App\Models\NavigationLink;
+use App\Models\NewsItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class PublicController extends Controller
 {
@@ -245,34 +249,32 @@ class PublicController extends Controller
     public function news()
     {
         $locale = app()->getLocale();
-        $items = \App\Models\NewsItem::with('category')
-            ->where('status', 'published')
+        $items = NewsItem::with('category')
+            ->visiblePublicly()
             ->orderByDesc('published_at')
             ->orderByDesc('created_at')
             ->get();
 
         $featured = $items->firstWhere('featured', true) ?? $items->first();
+        $featuredCard = $featured ? $this->mapNewsCard($featured, $locale) : null;
+        $cards = $items
+            ->reject(fn ($item) => $featured && $item->id === $featured->id)
+            ->map(fn (NewsItem $item) => $this->mapNewsCard($item, $locale))
+            ->values();
 
-        $map = function (\App\Models\NewsItem $item) use ($locale) {
-            return [
-                'title' => $item->localizedTitle($locale),
-                'slug' => $item->slug,
-                'summary' => \Illuminate\Support\Str::limit(strip_tags($item->localizedSummary($locale) ?: $item->localizedBody($locale)), 320),
-                'type' => $item->type,
-                'category' => $item->category?->name ?? $item->category ?? ucfirst($item->type),
-                'date' => optional($item->published_at)->format('M d, Y'),
-                'image' => $item->banner_path ? \Illuminate\Support\Facades\Storage::url($item->banner_path) : asset('images/flagships/placeholder.svg'),
-                'url' => route('news.detail', $item->slug ?: $item->id),
-                'location' => $item->location,
-                'starts_at' => optional($item->starts_at)->format('M d, Y'),
-                'ends_at' => optional($item->ends_at)->format('M d, Y'),
-            ];
-        };
+        $heroImages = collect([$featuredCard['image'] ?? null])
+            ->merge($cards->pluck('image'))
+            ->filter()
+            ->unique()
+            ->take(3)
+            ->values()
+            ->all();
 
-        $featuredCard = $featured ? $map($featured) : null;
-        $cards = $items->reject(fn($i) => $featured && $i->id === $featured->id)->map($map)->values();
+        if ($heroImages === []) {
+            $heroImages = [asset('images/flagships/placeholder.svg')];
+        }
 
-        return view('pages.news', compact('featuredCard', 'cards'));
+        return view('pages.news', compact('featuredCard', 'cards', 'heroImages'));
     }
 
     public function newsDetail($slug = null)
@@ -282,37 +284,66 @@ class PublicController extends Controller
         }
 
         $locale = app()->getLocale();
-        $item = \App\Models\NewsItem::with(['attachments','category'])
+        $item = NewsItem::with(['attachments','category'])
             ->where(function($q) use ($slug) {
                 $q->where('slug', $slug);
                 if (is_numeric($slug)) {
                     $q->orWhere('id', (int)$slug);
                 }
             })
-            ->where('status', 'published')
+            ->visiblePublicly()
             ->first();
 
         if (!$item) {
             abort(404);
         }
 
+        $image = $this->newsImageUrl($item->banner_path);
         $data = [
             'title' => $item->localizedTitle($locale),
             'category' => $item->category?->name ?? $item->category ?? ucfirst($item->type),
             'type' => $item->type,
             'date' => optional($item->published_at)->format('M d, Y'),
             'location' => $item->location,
-            'image' => $item->banner_path ? \Illuminate\Support\Facades\Storage::url($item->banner_path) : asset('images/flagships/placeholder.svg'),
+            'image' => $image,
             'body' => $item->localizedBody($locale) ?? $item->localizedSummary($locale),
             'attachments' => $item->attachments->map(function($att){
                 return [
                     'label' => $att->label ?: 'Download',
-                    'url' => $att->file_url ?: ($att->file_path ? \Illuminate\Support\Facades\Storage::url($att->file_path) : null),
+                    'url' => $att->file_url ?: ($att->file_path ? Storage::url($att->file_path) : null),
                 ];
             })->filter(fn($a)=>!empty($a['url']))->values(),
         ];
 
-        return view('pages.news-detail', compact('data'));
+        $relatedItems = NewsItem::with('category')
+            ->visiblePublicly()
+            ->whereKeyNot($item->id)
+            ->when(
+                $item->category_id,
+                fn ($query) => $query->where('category_id', $item->category_id),
+                fn ($query) => $query->where('type', $item->type)
+            )
+            ->orderByDesc('published_at')
+            ->limit(6)
+            ->get();
+
+        if ($relatedItems->count() < 6) {
+            $relatedItems = $relatedItems->concat(
+                NewsItem::with('category')
+                    ->visiblePublicly()
+                    ->whereKeyNot($item->id)
+                    ->whereNotIn('id', $relatedItems->pluck('id'))
+                    ->orderByDesc('published_at')
+                    ->limit(6 - $relatedItems->count())
+                    ->get()
+            );
+        }
+
+        $relatedNews = $relatedItems
+            ->map(fn (NewsItem $related) => $this->mapNewsCard($related, $locale))
+            ->values();
+
+        return view('pages.news-detail', compact('data', 'relatedNews'));
     }
 
     public function knowledgeBase()
@@ -420,5 +451,334 @@ class PublicController extends Controller
     public function continentalFrameworks()
     {
         return view('pages.continental-frameworks');
+    }
+
+    public function navigationPage(Request $request)
+    {
+        $path = $this->normalizeInternalPath('/' . ltrim($request->path(), '/'));
+        $link = $this->resolveDynamicPageLink($path);
+
+        if (! $link) {
+            abort(404);
+        }
+
+        $pageData = $this->buildNavigationPageData($link);
+
+        return view('pages.navigation-page', compact('link', 'pageData'));
+    }
+
+    protected function resolveDynamicPageLink(string $path): NavigationLink|FooterLink|null
+    {
+        return $this->resolveDynamicNavigationLink($path) ?? $this->resolveDynamicFooterLink($path);
+    }
+
+    protected function resolveDynamicNavigationLink(string $path): ?NavigationLink
+    {
+        $locale = app()->getLocale();
+        $defaultLocale = config('app.locale', 'en');
+        $candidates = array_values(array_unique([
+            $path,
+            $path === '/' ? '/' : rtrim($path, '/'),
+            $path === '/' ? '/' : rtrim($path, '/') . '/',
+        ]));
+
+        return NavigationLink::query()
+            ->with('parent')
+            ->where('is_active', true)
+            ->where('location', 'header')
+            ->whereIn('url', $candidates)
+            ->where('url', '!=', '#')
+            ->where(function ($query) use ($locale, $defaultLocale) {
+                $query->where('locale', $locale);
+
+                if ($defaultLocale !== $locale) {
+                    $query->orWhere('locale', $defaultLocale);
+                }
+            })
+            ->orderByRaw('CASE WHEN locale = ? THEN 0 ELSE 1 END', [$locale])
+            ->orderByRaw('CASE WHEN parent_id IS NULL THEN 0 ELSE 1 END')
+            ->orderBy('position')
+            ->first();
+    }
+
+    protected function resolveDynamicFooterLink(string $path): ?FooterLink
+    {
+        $locale = app()->getLocale();
+        $defaultLocale = config('app.locale', 'en');
+        $candidates = array_values(array_unique([
+            $path,
+            $path === '/' ? '/' : rtrim($path, '/'),
+            $path === '/' ? '/' : rtrim($path, '/') . '/',
+        ]));
+
+        return FooterLink::query()
+            ->where('is_active', true)
+            ->whereIn('url', $candidates)
+            ->where('url', '!=', '#')
+            ->where(function ($query) use ($locale, $defaultLocale) {
+                $query->where('locale', $locale);
+
+                if ($defaultLocale !== $locale) {
+                    $query->orWhere('locale', $defaultLocale);
+                }
+            })
+            ->orderByRaw('CASE WHEN locale = ? THEN 0 ELSE 1 END', [$locale])
+            ->orderBy('position')
+            ->first();
+    }
+
+    protected function buildNavigationPageData(NavigationLink|FooterLink $link): array
+    {
+        $pageMeta = $link->page_meta ?? [];
+        $pageType = (string) ($pageMeta['page_type'] ?? ($link instanceof NavigationLink && $link->parent ? 'programme' : 'information'));
+        $components = collect($pageMeta['components'] ?? []);
+        $aboutComponent = $components->firstWhere('type', 'about_page');
+        $timelineComponent = $components->firstWhere('type', 'timeline');
+        $richTextComponents = $components->where('type', 'richtext')->values();
+        $parentLabel = $link instanceof NavigationLink ? $link->parent?->label : null;
+
+        $defaultImages = [
+            asset('images/flagships/au1.jpg'),
+            asset('images/flagships/au4.jpg'),
+            asset('images/flagships/au5.jpg'),
+        ];
+
+        $heroImages = collect($aboutComponent['hero']['images'] ?? [])
+            ->filter(fn ($image) => filled($image))
+            ->values();
+
+        if ($heroImages->isEmpty()) {
+            $heroImages = collect($aboutComponent['sections'] ?? [])
+                ->pluck('image_url')
+                ->filter(fn ($image) => filled($image))
+                ->values();
+        }
+
+        if ($heroImages->isEmpty()) {
+            $heroImages = collect($defaultImages);
+        }
+
+        $usedIds = [];
+        $contentBlocks = [];
+        $bodyHtml = (string) ($pageMeta['body_html'] ?? '');
+
+        if (trim(strip_tags($bodyHtml)) !== '') {
+            $contentBlocks[] = [
+                'type' => 'html',
+                'id' => $this->uniqueBlockId('overview', $usedIds),
+                'label' => 'Overview',
+                'heading' => $pageMeta['body_heading'] ?? ($pageType === 'programme' ? 'Programme Overview' : $link->label),
+                'body' => $bodyHtml,
+            ];
+        }
+
+        foreach ($richTextComponents as $index => $component) {
+            $heading = trim((string) ($component['heading'] ?? ''));
+            $body = (string) ($component['body'] ?? '');
+
+            if (trim(strip_tags($body)) === '') {
+                continue;
+            }
+
+            $contentBlocks[] = [
+                'type' => 'html',
+                'id' => $this->uniqueBlockId($heading !== '' ? Str::slug($heading) : 'details-' . ($index + 1), $usedIds),
+                'label' => $heading !== '' ? $heading : 'Details ' . ($index + 1),
+                'heading' => $heading !== '' ? $heading : 'Details',
+                'body' => $body,
+            ];
+        }
+
+        foreach (collect($aboutComponent['sections'] ?? [])->values() as $index => $section) {
+            $section = is_array($section) ? $section : [];
+            $title = trim((string) ($section['title'] ?? 'Section ' . ($index + 1)));
+            $sectionId = $this->uniqueBlockId($section['id'] ?? Str::slug($title), $usedIds);
+            $paragraphs = collect($section['paragraphs'] ?? [])
+                ->map(fn ($paragraph) => trim((string) $paragraph))
+                ->filter()
+                ->values()
+                ->all();
+
+            $contentBlocks[] = [
+                'type' => 'section',
+                'id' => $sectionId,
+                'label' => $title,
+                'section' => [
+                    'id' => $sectionId,
+                    'title' => $title,
+                    'intro' => $section['intro'] ?? '',
+                    'paragraphs' => $paragraphs,
+                    'image_url' => $section['image_url'] ?? '',
+                    'tags' => $section['tags'] ?? [],
+                ],
+            ];
+        }
+
+        if ($contentBlocks === []) {
+            $contentBlocks[] = [
+                'type' => 'html',
+                'id' => $this->uniqueBlockId('overview', $usedIds),
+                'label' => 'Overview',
+                'heading' => $link->label,
+                'body' => '<p>This page content will appear here once it has been updated from the admin CMS.</p>',
+            ];
+        }
+
+        $timelineItems = collect($timelineComponent['items'] ?? ($aboutComponent['timeline'] ?? []))
+            ->map(function ($item) {
+                return [
+                    'period' => $item['period'] ?? '',
+                    'title' => $item['title'] ?? '',
+                    'text' => $item['text'] ?? '',
+                    'active' => ! empty($item['active']),
+                ];
+            })
+            ->filter(fn ($item) => filled($item['period']) || filled($item['title']) || filled($item['text']))
+            ->values()
+            ->all();
+
+        $ctaUrl = trim((string) ($pageMeta['cta_url'] ?? ''));
+        $ctaHost = null;
+
+        if (preg_match('/^https?:\/\//i', $ctaUrl)) {
+            $ctaHost = preg_replace('/^www\./i', '', (string) parse_url($ctaUrl, PHP_URL_HOST));
+        }
+
+        $infoItems = collect($pageMeta['info_items'] ?? [])
+            ->map(function ($item) {
+                return [
+                    'label' => trim((string) ($item['label'] ?? '')),
+                    'value' => trim((string) ($item['value'] ?? '')),
+                ];
+            })
+            ->filter(fn ($item) => $item['label'] !== '' && $item['value'] !== '')
+            ->values()
+            ->all();
+
+        if ($infoItems === []) {
+            if ($pageType === 'programme') {
+                $infoItems = array_values(array_filter([
+                    $parentLabel ? ['label' => 'Category', 'value' => $parentLabel] : null,
+                    ['label' => 'Page Title', 'value' => $link->label],
+                    ['label' => 'Hosted On', 'value' => 'Agenda 2063 Platform'],
+                ]));
+            } elseif ($link instanceof FooterLink) {
+                $infoItems = [
+                    ['label' => 'Footer Section', 'value' => ucfirst($link->section)],
+                    ['label' => 'Page Title', 'value' => $link->label],
+                    ['label' => 'Hosted On', 'value' => 'Agenda 2063 Platform'],
+                ];
+            }
+        }
+
+        $ctaEnabled = $ctaUrl !== '' && ($pageMeta['cta_label'] ?? '') !== '';
+        $ctaTitle = $pageMeta['cta_title']
+            ?? ($pageType === 'programme'
+                ? 'Apply to ' . $link->label
+                : ($pageType === 'contact'
+                    ? 'Contact the Agenda 2063 Team'
+                    : 'Continue'));
+        $ctaDescription = $pageMeta['cta_description']
+            ?? ($pageType === 'programme'
+                ? 'Review the official programme guidance on this page before continuing to the application step.'
+                : ($pageType === 'contact'
+                    ? 'Use the official action below to continue through the preferred contact or engagement channel.'
+                    : 'Use the action below to continue to the next official step.'));
+        $ctaNote = $pageMeta['cta_note']
+            ?? ($pageType === 'programme'
+                ? 'If the application is hosted on another platform, a short redirect notice will appear before you leave this site.'
+                : ($ctaEnabled ? 'If the action opens on another platform, a short redirect notice will appear before you leave this site.' : ''));
+
+        return [
+            'page_type' => $pageType,
+            'hero' => [
+                'label' => $aboutComponent['hero']['label'] ?? ($pageMeta['hero_label'] ?? ($parentLabel ?? 'Agenda 2063')),
+                'title' => ($pageMeta['hero_title'] ?? '') ?: ($aboutComponent['hero']['title'] ?? $link->label),
+                'subtitle' => ($pageMeta['hero_subtitle'] ?? '') ?: ($aboutComponent['hero']['subtitle'] ?? 'Official Agenda 2063 information page.'),
+                'images' => $heroImages->all(),
+            ],
+            'sidebar' => collect($contentBlocks)->map(function ($block) {
+                return [
+                    'id' => $block['id'],
+                    'label' => $block['label'],
+                ];
+            })->all(),
+            'blocks' => $contentBlocks,
+            'timeline' => [
+                'title' => $timelineComponent['title'] ?? ($pageType === 'programme' ? 'Programme Journey' : 'Key Milestones'),
+                'subtitle' => $timelineComponent['subtitle'] ?? ($pageType === 'programme' ? 'Key stages from call announcement to programme delivery' : 'Key reference points for this page'),
+                'items' => $timelineItems,
+            ],
+            'cta' => [
+                'enabled' => $ctaEnabled,
+                'eyebrow' => $pageMeta['cta_eyebrow'] ?? ($pageType === 'programme' ? 'Applications' : 'Quick Action'),
+                'title' => $ctaTitle,
+                'description' => $ctaDescription,
+                'label' => $pageMeta['cta_label'] ?? '',
+                'url' => $ctaUrl,
+                'host' => $ctaHost,
+                'note' => $ctaNote,
+                'show_placeholder' => $pageType === 'programme' && ! $ctaEnabled,
+                'placeholder' => 'The application URL has not been configured yet.',
+            ],
+            'info_card' => [
+                'eyebrow' => $pageMeta['info_card_eyebrow'] ?? ($pageType === 'programme' ? 'Programme Details' : 'Page Details'),
+                'items' => $infoItems,
+            ],
+        ];
+    }
+
+    protected function mapNewsCard(NewsItem $item, string $locale): array
+    {
+        return [
+            'title' => $item->localizedTitle($locale),
+            'slug' => $item->slug,
+            'summary' => Str::limit(strip_tags($item->localizedSummary($locale) ?: $item->localizedBody($locale)), 320),
+            'type' => $item->type,
+            'category' => $item->category?->name ?? $item->category ?? ucfirst($item->type),
+            'date' => optional($item->published_at)->format('M d, Y'),
+            'image' => $this->newsImageUrl($item->banner_path),
+            'url' => route('news.detail', $item->slug ?: $item->id),
+            'location' => $item->location,
+            'starts_at' => optional($item->starts_at)->format('M d, Y'),
+            'ends_at' => optional($item->ends_at)->format('M d, Y'),
+        ];
+    }
+
+    protected function newsImageUrl(?string $bannerPath): string
+    {
+        if ($bannerPath && Storage::disk('public')->exists($bannerPath)) {
+            return Storage::url($bannerPath);
+        }
+
+        return asset('images/flagships/placeholder.svg');
+    }
+
+    protected function uniqueBlockId(?string $candidate, array &$usedIds): string
+    {
+        $base = Str::slug((string) $candidate);
+        $base = $base !== '' ? $base : 'section';
+        $id = $base;
+        $suffix = 2;
+
+        while (in_array($id, $usedIds, true)) {
+            $id = $base . '-' . $suffix;
+            $suffix++;
+        }
+
+        $usedIds[] = $id;
+
+        return $id;
+    }
+
+    protected function normalizeInternalPath(string $path): string
+    {
+        $normalized = '/' . ltrim($path, '/');
+
+        if ($normalized !== '/') {
+            $normalized = rtrim($normalized, '/');
+        }
+
+        return $normalized === '' ? '/' : $normalized;
     }
 }

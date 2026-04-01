@@ -112,13 +112,13 @@ class FlagshipPageSeeder extends Seeder
         ];
 
         NavigationLink::updateOrCreate(
-            ['url' => '/flagship-projects', 'location' => 'header'],
+            ['url' => '/flagship-projects', 'location' => 'header', 'locale' => config('app.locale', 'en')],
             [
                 'label' => 'Flagship Projects',
-                'position' => 3,
+                'position' => 2,
                 'open_in_new_tab' => false,
                 'is_active' => true,
-                'locale' => app()->getLocale(),
+                'locale' => config('app.locale', 'en'),
                 'page_meta' => [
                     'components' => [$component],
                     'flagship_items' => $flagships,

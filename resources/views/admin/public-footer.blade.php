@@ -54,6 +54,10 @@
                 </div>
                 <button class="btn-primary-admin" type="submit"><i class="fa-solid fa-save"></i> Save</button>
             </form>
+            <p class="text-muted" style="margin-top:10px;">
+                Use an internal path such as <code>/contact</code> or <code>/privacy-notice</code> when the footer link should open a full CMS page.
+                External URLs will continue to redirect directly.
+            </p>
         </div>
     </div>
 
@@ -69,7 +73,7 @@
                     @foreach($links as $link)
                         <tr data-id="{{ $link->id }}">
                             <td class="drag-handle"><i class="fa-solid fa-grip-vertical"></i></td>
-                            <td>{{ $link->label }}</td>
+                            <td><a href="{{ route('admin.public.footer.edit', $link) }}">{{ $link->label }}</a></td>
                             <td>{{ $link->url }}</td>
                             <td>{{ $link->section }}</td>
                             <td>{{ strtoupper($link->locale) }}</td>
@@ -77,17 +81,8 @@
                             <td>{{ $link->position }}</td>
                             <td>{{ $link->open_in_new_tab ? 'Yes' : 'No' }}</td>
                             <td>
-                                <form method="POST" action="{{ route('admin.public.footer.update', $link) }}" style="display:inline-block;">
-                                    @csrf @method('PUT')
-                                    <input type="hidden" name="label" value="{{ $link->label }}">
-                                    <input type="hidden" name="url" value="{{ $link->url }}">
-                                    <input type="hidden" name="section" value="{{ $link->section }}">
-                                    <input type="hidden" name="position" value="{{ $link->position }}">
-                                    <input type="hidden" name="open_in_new_tab" value="{{ $link->open_in_new_tab }}">
-                                    <input type="hidden" name="is_active" value="{{ $link->is_active }}">
-                                    <input type="hidden" name="locale" value="{{ $link->locale }}">
-                                    <button class="action-icon-btn" title="Re-save"><i class="fa-solid fa-pen"></i></button>
-                                </form>
+                                <a href="{{ route('admin.public.footer.edit', $link) }}" class="action-icon-btn" title="Edit link"><i class="fa-solid fa-pen"></i></a>
+                                <a href="{{ route('admin.public.footer.design', $link) }}" class="action-icon-btn" title="Design page"><i class="fa-solid fa-palette"></i></a>
                                 <form method="POST" action="{{ route('admin.public.footer.destroy', $link) }}" style="display:inline-block;" onsubmit="return confirm('Delete {{ $link->label }}?')">
                                     @csrf @method('DELETE')
                                     <button class="action-icon-btn danger" title="Delete"><i class="fa-solid fa-trash"></i></button>

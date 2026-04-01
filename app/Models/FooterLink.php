@@ -15,5 +15,12 @@ class FooterLink extends Model
         'open_in_new_tab',
         'is_active',
         'clicks',
+        'page_meta',
+    ];
+
+    protected $casts = [
+        'open_in_new_tab' => 'bool',
+        'is_active' => 'bool',
+        'page_meta' => 'array',
     ];
 }

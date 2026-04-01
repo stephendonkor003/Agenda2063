@@ -14,7 +14,7 @@
             <button><i class="fa-solid fa-chevron-right"></i></button>
         </div>
         @php
-            $langs = [
+            $languageLabels = [
                 'en' => 'English',
                 'fr' => 'Français',
                 'ar' => 'العربية',
@@ -22,6 +22,10 @@
                 'pt' => 'Português',
                 'es' => 'Español',
             ];
+            $supportedLocales = config('app.supported_locales', ['en', 'fr', 'pt', 'ar']);
+            $langs = collect($supportedLocales)->mapWithKeys(function ($code) use ($languageLabels) {
+                return [$code => $languageLabels[$code] ?? strtoupper($code)];
+            });
             $current = app()->getLocale();
         @endphp
         <div class="language-selector">

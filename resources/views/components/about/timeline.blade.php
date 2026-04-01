@@ -1,8 +1,12 @@
-@props(['items' => []])
+@props([
+    'items' => [],
+    'title' => 'Our Journey to 2063',
+    'subtitle' => "Key milestones in Africa's transformation",
+])
 <div class="timeline-section">
     <div class="section-header-center">
-        <h2>Our Journey to 2063</h2>
-        <p class="section-subtitle">Key milestones in Africa's transformation</p>
+        <h2>{{ $title }}</h2>
+        <p class="section-subtitle">{{ $subtitle }}</p>
     </div>
     <div class="timeline">
         @foreach($items as $item)

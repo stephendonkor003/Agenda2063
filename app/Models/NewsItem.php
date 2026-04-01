@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -51,6 +52,22 @@ class NewsItem extends Model
             if (empty($item->slug)) {
                 $item->slug = Str::slug($item->title . '-' . now()->timestamp);
             }
+
+            if ($item->status === 'published' && empty($item->published_at)) {
+                $item->published_at = $item->freshTimestamp();
+            }
+        });
+    }
+
+    public function scopeVisiblePublicly(Builder $query): Builder
+    {
+        return $query->where(function (Builder $query) {
+            $query->where('status', 'published')
+                ->orWhere(function (Builder $query) {
+                    $query->where('status', 'scheduled')
+                        ->whereNotNull('published_at')
+                        ->where('published_at', '<=', now());
+                });
         });
     }
 

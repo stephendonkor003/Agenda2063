@@ -94,13 +94,13 @@ class HomePageSeeder extends Seeder
         ];
 
         NavigationLink::updateOrCreate(
-            ['url' => '/', 'location' => 'header'],
+            ['url' => '/', 'location' => 'header', 'locale' => config('app.locale', 'en')],
             [
                 'label' => 'Home',
                 'position' => 0,
                 'open_in_new_tab' => false,
                 'is_active' => true,
-                'locale' => app()->getLocale(),
+                'locale' => config('app.locale', 'en'),
                 'page_meta' => $pageMeta,
             ]
         );

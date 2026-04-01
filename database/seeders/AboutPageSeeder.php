@@ -128,13 +128,13 @@ class AboutPageSeeder extends Seeder
         ];
 
         NavigationLink::updateOrCreate(
-            ['url' => '/about', 'location' => 'header'],
+            ['url' => '/about', 'location' => 'header', 'locale' => config('app.locale', 'en')],
             [
                 'label' => 'About',
-                'position' => 2,
+                'position' => 1,
                 'open_in_new_tab' => false,
                 'is_active' => true,
-                'locale' => app()->getLocale(),
+                'locale' => config('app.locale', 'en'),
                 'page_meta' => [
                     'about' => $aboutData,
                     'components' => [

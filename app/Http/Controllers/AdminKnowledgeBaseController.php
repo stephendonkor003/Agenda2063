@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Department;
 use App\Models\KnowledgeCategory;
 use App\Models\KnowledgeDocument;
+use App\Rules\SafeUrl;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -77,11 +78,12 @@ class AdminKnowledgeBaseController extends Controller
         }
 
         if ($request->hasFile('file_upload')) {
-            $path = $request->file('file_upload')->store('knowledge/docs', 'public');
+            $path = $request->file('file_upload')->store('knowledge/docs', 'local');
             $data['file_path'] = $path;
             $data['mime'] = $request->file('file_upload')->getClientMimeType();
             $data['size_bytes'] = $request->file('file_upload')->getSize();
             $data['type'] = 'file';
+            $data['source_url'] = null;
         }
 
         $data['created_by'] = $user->id;
@@ -106,15 +108,19 @@ class AdminKnowledgeBaseController extends Controller
         }
 
         if ($request->hasFile('file_upload')) {
-            // delete old file if existed
-            if ($document->file_path) {
-                Storage::disk('public')->delete($document->file_path);
-            }
-            $path = $request->file('file_upload')->store('knowledge/docs', 'public');
+            $this->deleteStoredFile($document->file_path);
+
+            $path = $request->file('file_upload')->store('knowledge/docs', 'local');
             $data['file_path'] = $path;
             $data['mime'] = $request->file('file_upload')->getClientMimeType();
             $data['size_bytes'] = $request->file('file_upload')->getSize();
             $data['type'] = 'file';
+            $data['source_url'] = null;
+        } elseif ($data['type'] === 'link') {
+            $this->deleteStoredFile($document->file_path);
+            $data['file_path'] = null;
+            $data['mime'] = null;
+            $data['size_bytes'] = null;
         }
 
         $data['updated_by'] = $request->user()->id;
@@ -128,9 +134,7 @@ class AdminKnowledgeBaseController extends Controller
     public function destroyDocument(Request $request, KnowledgeDocument $document)
     {
         $this->authorizeDocument($request, $document);
-        if ($document->file_path) {
-            Storage::disk('public')->delete($document->file_path);
-        }
+        $this->deleteStoredFile($document->file_path);
         $document->delete();
         return back()->with('status', 'Document deleted.');
     }
@@ -147,8 +151,8 @@ class AdminKnowledgeBaseController extends Controller
             'status' => ['required', 'in:draft,published,archived'],
             'summary' => ['nullable', 'string'],
             'body' => ['nullable', 'string'],
-            'source_url' => ['nullable', 'url'],
-            'file_upload' => ['nullable', 'file', 'max:51200'], // 50MB
+            'source_url' => ['nullable', new SafeUrl()],
+            'file_upload' => ['nullable', 'file', 'max:51200', 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,csv'],
             'department_id' => [$canViewAll ? 'nullable' : 'prohibited', 'exists:departments,id'],
         ]);
     }
@@ -167,6 +171,19 @@ class AdminKnowledgeBaseController extends Controller
         $user = $request->user();
         if (! $user->canDo('view-all-departments') && $user->department_id !== $document->department_id) {
             abort(403);
+        }
+    }
+
+    protected function deleteStoredFile(?string $path): void
+    {
+        if (! $path) {
+            return;
+        }
+
+        foreach (['local', 'public'] as $disk) {
+            if (Storage::disk($disk)->exists($path)) {
+                Storage::disk($disk)->delete($path);
+            }
         }
     }
 }

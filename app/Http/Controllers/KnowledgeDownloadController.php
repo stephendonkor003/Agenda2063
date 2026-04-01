@@ -11,13 +11,24 @@ class KnowledgeDownloadController extends Controller
     public function show(Request $request, $slug)
     {
         $document = KnowledgeDocument::where('slug', $slug)->firstOrFail();
-        $document->increment('downloads');
 
-        if ($document->file_path && Storage::disk('public')->exists($document->file_path)) {
-            return Storage::disk('public')->download($document->file_path, $document->title . '.' . $this->extensionFromMime($document->mime));
+        if ($document->file_path) {
+            foreach (['local', 'public'] as $disk) {
+                if (Storage::disk($disk)->exists($document->file_path)) {
+                    $document->increment('downloads');
+
+                    return Storage::disk($disk)->download(
+                        $document->file_path,
+                        $document->title . '.' . $this->extensionFromMime($document->mime),
+                        ['X-Content-Type-Options' => 'nosniff']
+                    );
+                }
+            }
         }
 
         if ($document->source_url) {
+            $document->increment('downloads');
+
             return redirect()->away($document->source_url);
         }
 

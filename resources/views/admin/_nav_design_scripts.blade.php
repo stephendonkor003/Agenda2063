@@ -14,8 +14,19 @@
             title:'About Page',
             hero:{label:'The Africa We Want', title:'About Agenda 2063', subtitle:'Africa\'s Blueprint for Transformation', images:[]},
             sections:[{id:'overview', title:'About the Africa We Want', intro:'', paragraphs:[''], image_url:''}],
+            sidebar_cards:[{section_id:'overview', title:'Project Spotlight', headline:'Continental Delivery Lens', subheadline:'Agenda 2063 Flagship Portfolio', body:'Use this space to spotlight the current section with an image and a short strategic note.', image_url:'', icon:'fa-rocket', link:''}],
+            moonshots_title:'Africa\'s Moon Shots',
+            moonshots_subtitle:'Ambitious goals that will transform Africa by 2063',
             moonshots:[{title:'Education Revolution', text:'100% of African children will complete primary and secondary education with quality learning outcomes', progress:45, icon:'fa-graduation-cap'}],
-            timeline:[{period:'2013', title:'Agenda 2063 Adopted', text:'African Union Heads of State and Government adopted Agenda 2063 as Africa\'s development blueprint', active:false}]
+            timeline:[{period:'2013', title:'Agenda 2063 Adopted', text:'African Union Heads of State and Government adopted Agenda 2063 as Africa\'s development blueprint', active:false}],
+            cta:{
+                title:'Join the Movement',
+                description:'Be part of Africa\'s transformation. Together, we can build the Africa we want.',
+                buttons:[
+                    {label:'Get Involved', link:'#', style:'primary', icon:'fa-hands-helping'},
+                    {label:'Download Resources', link:'#', style:'secondary', icon:'fa-download'}
+                ]
+            }
         },
         timeline: {
             type:'timeline',
@@ -253,7 +264,25 @@
             });
             fields.push(`<button type="button" class="btn-outline-admin" data-add-section="${idx}"><i class="fa-solid fa-plus"></i> Add Section</button>`);
 
+            fields.push('<div class="subhead">Sidebar Cards</div>');
+            (comp.sidebar_cards||[]).forEach((card,i)=>{
+                fields.push(`<div class="subhead">Card ${i+1} <button type="button" class="btn-link" data-remove-sidebar-card="${i}">Remove</button></div>`);
+                addField(`Section ID`,`sidebar_cards.${i}.section_id`,card.section_id ?? '');
+                addField(`Eyebrow`,`sidebar_cards.${i}.title`,card.title ?? '');
+                addField(`Headline`,`sidebar_cards.${i}.headline`,card.headline ?? '');
+                addField(`Subheadline`,`sidebar_cards.${i}.subheadline`,card.subheadline ?? '');
+                addField(`Icon (FontAwesome class)`,`sidebar_cards.${i}.icon`,card.icon ?? 'fa-rocket');
+                addField(`Link`,`sidebar_cards.${i}.link`,card.link ?? '');
+                addField(`Button Label`,`sidebar_cards.${i}.button_label`,card.button_label ?? '');
+                addField(`Image URL`,`sidebar_cards.${i}.image_url`,card.image_url ?? '');
+                fields.push(`<label>Card ${i+1} Image Upload<input type="file" name="upload_component_${idx}_sidebar_cards[]"></label>`);
+                fields.push(`<label>Description<textarea data-field="sidebar_cards.${i}.body" rows="3">${card.body ?? ''}</textarea></label>`);
+            });
+            fields.push(`<button type="button" class="btn-outline-admin" data-add-sidebar-card="${idx}"><i class="fa-solid fa-plus"></i> Add Sidebar Card</button>`);
+
             fields.push('<div class="subhead">Moonshots</div>');
+            addField('Moonshots Title','moonshots_title',comp.moonshots_title ?? 'Africa\'s Moon Shots');
+            addField('Moonshots Subtitle','moonshots_subtitle',comp.moonshots_subtitle ?? 'Ambitious goals that will transform Africa by 2063');
             (comp.moonshots||[]).forEach((m,i)=>{
                 fields.push(`<div class="subhead">Moonshot ${i+1} <button type="button" class="btn-link" data-remove-moonshot="${i}">Remove</button></div>`);
                 addField(`Title`,`moonshots.${i}.title`,m.title ?? '');
@@ -272,6 +301,18 @@
                 fields.push(`<label>Active<select data-field="timeline.${i}.active"><option value="false" ${t.active?'':'selected'}>No</option><option value="true" ${t.active?'selected':''}>Yes</option></select></label>`);
             });
             fields.push(`<button type="button" class="btn-outline-admin" data-add-timeline="${idx}"><i class="fa-solid fa-plus"></i> Add Timeline Item</button>`);
+
+            fields.push('<div class="subhead">Lower CTA</div>');
+            addField('CTA Title','cta.title',comp.cta?.title ?? '');
+            fields.push(`<label>CTA Description<textarea data-field="cta.description" rows="3">${comp.cta?.description ?? ''}</textarea></label>`);
+            (comp.cta?.buttons||[]).forEach((button,i)=>{
+                fields.push(`<div class="subhead">CTA Button ${i+1} <button type="button" class="btn-link" data-remove-about-cta-button="${i}">Remove</button></div>`);
+                addField(`Label`,`cta.buttons.${i}.label`,button.label ?? '');
+                addField(`Link`,`cta.buttons.${i}.link`,button.link ?? '');
+                addField(`Style`,`cta.buttons.${i}.style`,button.style ?? ($i === 0 ? 'primary' : 'secondary'));
+                addField(`Icon`,`cta.buttons.${i}.icon`,button.icon ?? '');
+            });
+            fields.push(`<button type="button" class="btn-outline-admin" data-add-about-cta-button="${idx}"><i class="fa-solid fa-plus"></i> Add CTA Button</button>`);
         } else if (comp.type === 'timeline') {
             addField('Title','title',comp.title);
             addField('Subtitle','subtitle',comp.subtitle);
@@ -369,6 +410,18 @@
         editor.querySelectorAll('[data-remove-section]').forEach(btn => {
             btn.addEventListener('click', () => { removeItem(comp, 'sections', Number(btn.getAttribute('data-remove-section'))); const arr = getData(); arr[idx]=comp; setData(arr); openEditor(idx); });
         });
+        editor.querySelectorAll('[data-add-sidebar-card]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                addItem(comp, 'sidebar_cards', {section_id:'', title:'', headline:'', subheadline:'', body:'', image_url:'', icon:'fa-rocket', link:'', button_label:''});
+                const arr = getData(); arr[idx]=comp; setData(arr); openEditor(idx);
+            });
+        });
+        editor.querySelectorAll('[data-remove-sidebar-card]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                removeItem(comp, 'sidebar_cards', Number(btn.getAttribute('data-remove-sidebar-card')));
+                const arr = getData(); arr[idx]=comp; setData(arr); openEditor(idx);
+            });
+        });
         editor.querySelectorAll('[data-add-paragraph]').forEach(btn => {
             btn.addEventListener('click', () => { const sIdx = Number(btn.getAttribute('data-add-paragraph')); if (isNaN(sIdx)) return; comp.sections[sIdx].paragraphs = comp.sections[sIdx].paragraphs || []; comp.sections[sIdx].paragraphs.push(''); const arr = getData(); arr[idx]=comp; setData(arr); openEditor(idx); });
         });
@@ -386,6 +439,21 @@
         });
         editor.querySelectorAll('[data-remove-timeline]').forEach(btn => {
             btn.addEventListener('click', () => { removeItem(comp, 'timeline', Number(btn.getAttribute('data-remove-timeline'))); const arr = getData(); arr[idx]=comp; setData(arr); openEditor(idx); });
+        });
+        editor.querySelectorAll('[data-add-about-cta-button]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                comp.cta = comp.cta || {};
+                comp.cta.buttons = comp.cta.buttons || [];
+                comp.cta.buttons.push({label:'', link:'', style:comp.cta.buttons.length === 0 ? 'primary' : 'secondary', icon:''});
+                const arr = getData(); arr[idx]=comp; setData(arr); openEditor(idx);
+            });
+        });
+        editor.querySelectorAll('[data-remove-about-cta-button]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (!comp.cta || !Array.isArray(comp.cta.buttons)) return;
+                comp.cta.buttons.splice(Number(btn.getAttribute('data-remove-about-cta-button')), 1);
+                const arr = getData(); arr[idx]=comp; setData(arr); openEditor(idx);
+            });
         });
         editor.querySelectorAll('[data-add-timeline-item]').forEach(btn => {
             btn.addEventListener('click', () => { addItem(comp, 'items', {period:'', title:'', text:'', active:false}); const arr = getData(); arr[idx]=comp; setData(arr); openEditor(idx); });

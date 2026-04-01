@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class AdminUsersController extends Controller
@@ -50,22 +51,28 @@ class AdminUsersController extends Controller
             'department_id' => ['required', 'exists:departments,id'],
             'role_id' => ['nullable', 'exists:roles,id'],
         ]);
+        $data['email'] = strtolower($data['email']);
 
         if (! $user->canDo('view-all-departments')) {
             $data['department_id'] = $user->department_id;
         }
 
+        $temporaryPassword = Str::password(20, true, true, true, false);
+
         $newUser = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
-            'password' => Hash::make('ChangeMe123!'),
+            'password' => Hash::make($temporaryPassword),
             'department_id' => $data['department_id'],
             'is_admin' => false,
+            'force_password_reset' => true,
         ]);
 
         $newUser->roles()->sync($data['role_id'] ? [$data['role_id']] : []);
 
-        return back()->with('status', 'User created with temporary password: ChangeMe123! Please update it.');
+        return back()
+            ->with('status', 'User created. One-time password: '.$temporaryPassword.' Share it securely and require an immediate reset.')
+            ->with('temporary_password', $temporaryPassword);
     }
 
     public function update(Request $request, User $user)
@@ -85,6 +92,7 @@ class AdminUsersController extends Controller
             'role_id' => ['nullable', 'exists:roles,id'],
             'is_admin' => ['sometimes', 'boolean'],
         ]);
+        $data['email'] = strtolower($data['email']);
 
         if (! $current->canDo('view-all-departments')) {
             $data['department_id'] = $current->department_id;

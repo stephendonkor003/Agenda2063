@@ -4,10 +4,14 @@
 @section('page-title', 'Design Page for "' . $link->label . '"')
 
 @section('content')
+    @php
+        $isInternalUrl = str_starts_with($link->url, '/');
+    @endphp
+
     <div class="page-header-banner">
         <div class="page-header-text">
-            <h1><i class="fa-solid fa-pen-ruler"></i> Page Designer</h1>
-            <p>Configure the hero, components, and body for this page.</p>
+            <h1><i class="fa-solid fa-pen-ruler"></i> Footer Page Designer</h1>
+            <p>Configure the hero, body, and components for this footer-linked page.</p>
         </div>
     </div>
 
@@ -18,11 +22,18 @@
         <div class="alert danger"><div class="alert-icon"><i class="fa-solid fa-circle-exclamation"></i></div><div class="alert-body">{{ $errors->first() }}</div></div>
     @endif
 
-    @if($isProgrammeChild)
+    @if($isInternalUrl)
         <div class="alert success">
-            <div class="alert-icon"><i class="fa-solid fa-compass-drafting"></i></div>
+            <div class="alert-icon"><i class="fa-solid fa-sitemap"></i></div>
             <div class="alert-body">
-                This programme page is fully CMS-driven. Keep the menu URL internal, build the content with the components below, and use <strong>CTA Label</strong> plus <strong>CTA URL</strong> for the external Apply Now button.
+                This footer link points to an internal platform page, so the content you save here will be rendered on the public site.
+            </div>
+        </div>
+    @else
+        <div class="alert success">
+            <div class="alert-icon"><i class="fa-solid fa-arrow-right-arrow-left"></i></div>
+            <div class="alert-body">
+                This link currently points outside the platform. The page design will be saved, but it will only render publicly after the URL is changed to an internal path.
             </div>
         </div>
     @endif
@@ -30,10 +41,10 @@
     <div class="settings-card">
         <div class="settings-card-header">
             <h3>Hero & Body</h3>
-            <p>Content will be used on the public page linked to {{ $link->label }}.</p>
+            <p>Content will be used on the public page linked from {{ $link->label }}.</p>
         </div>
         <div class="settings-card-body">
-            <form method="POST" action="{{ route('admin.public.nav.design.save', $link) }}" id="pageDesignForm" enctype="multipart/form-data">
+            <form method="POST" action="{{ route('admin.public.footer.design.save', $link) }}" id="pageDesignForm" enctype="multipart/form-data">
                 @csrf
                 <div class="settings-row">
                     <div class="settings-field" style="min-width:280px;">
@@ -97,7 +108,7 @@
 
                 <div class="settings-card-footer" style="margin-top:16px;">
                     <button class="btn-primary-admin" type="submit"><i class="fa-solid fa-save"></i> Save Page</button>
-                    <a class="btn-outline-admin" href="{{ route('admin.public.nav') }}"><i class="fa-solid fa-arrow-left"></i> Back to Navigation</a>
+                    <a class="btn-outline-admin" href="{{ route('admin.public.footer') }}"><i class="fa-solid fa-arrow-left"></i> Back to Footer Links</a>
                 </div>
             </form>
         </div>
